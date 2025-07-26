@@ -2,7 +2,7 @@ import os
 import uuid
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client, Client
@@ -18,6 +18,9 @@ import base64
 from io import BytesIO
 from PIL import Image, ImageFilter, ImageEnhance
 import numpy as np
+import docx
+import PyPDF2
+import io
 
 # Carregar variáveis de ambiente
 load_dotenv()
@@ -80,6 +83,145 @@ PRE_GENERATED_METAPHOR_IMAGES = [
     "https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?q=80&w=1935&auto=format&fit=crop", # conceito premium
     "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=2070&auto=format&fit=crop"  # design criativo
 ]
+
+# Funções para parsing de documentos
+def extract_text_from_file(file: UploadFile) -> str:
+    """Extrai texto de diferentes tipos de arquivo"""
+    try:
+        if file.content_type == "application/pdf":
+            pdf_reader = PyPDF2.PdfReader(io.BytesIO(file.file.read()))
+            text = ""
+            for page in pdf_reader.pages:
+                text += page.extract_text() + "\n"
+            return text
+        
+        elif file.content_type in ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"]:
+            doc = docx.Document(io.BytesIO(file.file.read()))
+            text = ""
+            for paragraph in doc.paragraphs:
+                text += paragraph.text + "\n"
+            return text
+        
+        elif file.content_type == "text/plain":
+            content = file.file.read()
+            return content.decode('utf-8')
+        
+        else:
+            # Tentar como texto plano
+            content = file.file.read()
+            return content.decode('utf-8', errors='ignore')
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erro ao extrair texto: {str(e)}")
+
+def analyze_document_sections(text: str) -> List[Dict[str, Any]]:
+    """Analisa o documento e identifica seções estratégicas"""
+    sections = []
+    
+    # Padrões para identificar seções
+    section_patterns = {
+        'company_info': [
+            r'(empresa|companhia|negócio|organização)',
+            r'(sobre|história|fundação)',
+            r'(missão|visão|valores)'
+        ],
+        'target_audience': [
+            r'(público|audiência|target|cliente)',
+            r'(persona|perfil|consumidor)',
+            r'(demográfico|segmento)'
+        ],
+        'objectives': [
+            r'(objetivo|meta|propósito)',
+            r'(estratégia|plano|direção)',
+            r'(resultado|alcançar)'
+        ],
+        'brand_personality': [
+            r'(personalidade|tom|voz)',
+            r'(estilo|identidade|caráter)',
+            r'(atributo|característica)'
+        ],
+        'values': [
+            r'(valor|princípio|crença)',
+            r'(ética|cultura|filosofia)',
+            r'(importância|prioridade)'
+        ]
+    }
+    
+    # Dividir texto em parágrafos
+    paragraphs = [p.strip() for p in text.split('\n') if p.strip()]
+    
+    for paragraph in paragraphs:
+        if len(paragraph) < 50:  # Pular parágrafos muito curtos
+            continue
+        
+        best_match = {'type': 'other', 'confidence': 0.0}
+        
+        # Verificar cada tipo de seção
+        for section_type, patterns in section_patterns.items():
+            confidence = 0.0
+            
+            for pattern in patterns:
+                matches = len(re.findall(pattern, paragraph.lower()))
+                confidence += matches * 0.2
+            
+            # Bonus por palavras-chave específicas
+            if section_type == 'company_info' and any(word in paragraph.lower() for word in ['empresa', 'fundada', 'criada']):
+                confidence += 0.3
+            elif section_type == 'target_audience' and any(word in paragraph.lower() for word in ['anos', 'jovens', 'adultos', 'profissionais']):
+                confidence += 0.3
+            elif section_type == 'objectives' and any(word in paragraph.lower() for word in ['queremos', 'objetivo', 'busca']):
+                confidence += 0.3
+            
+            if confidence > best_match['confidence']:
+                best_match = {'type': section_type, 'confidence': min(confidence, 1.0)}
+        
+        # Determinar título baseado no tipo
+        title_map = {
+            'company_info': 'Informações da Empresa',
+            'target_audience': 'Público-Alvo',
+            'objectives': 'Objetivos',
+            'brand_personality': 'Personalidade da Marca',
+            'values': 'Valores',
+            'other': 'Informações Gerais'
+        }
+        
+        sections.append({
+            'title': title_map[best_match['type']],
+            'content': paragraph,
+            'confidence': best_match['confidence'],
+            'type': best_match['type']
+        })
+    
+    # Ordenar por confidence e pegar as melhores
+    sections.sort(key=lambda x: x['confidence'], reverse=True)
+    return sections[:8]  # Máximo de 8 seções
+
+def calculate_overall_confidence(sections: List[Dict[str, Any]]) -> float:
+    """Calcula confidence score geral do documento"""
+    if not sections:
+        return 0.0
+    
+    # Pesos por tipo de seção
+    type_weights = {
+        'company_info': 0.2,
+        'target_audience': 0.25,
+        'objectives': 0.25,
+        'brand_personality': 0.15,
+        'values': 0.15
+    }
+    
+    total_weight = 0.0
+    weighted_confidence = 0.0
+    
+    for section in sections:
+        weight = type_weights.get(section['type'], 0.1)
+        total_weight += weight
+        weighted_confidence += section['confidence'] * weight
+    
+    if total_weight == 0:
+        return sum(s['confidence'] for s in sections) / len(sections)
+    
+    return min(weighted_confidence / total_weight, 1.0)
 
 # Funções para geração da galáxia de conceitos
 def generate_visual_metaphors(keywords: List[str], attributes: List[str], demo_mode: bool = True) -> List[Dict[str, str]]:
@@ -446,7 +588,352 @@ def generate_brand_kit_components(curated_assets: List[Dict[str, Any]], brand_na
     
     return kit_components
 
+def analyze_strategic_elements(text: str, keywords: List[str], attributes: List[str]) -> Dict[str, Any]:
+    """Analisa elementos estratégicos do briefing"""
+    
+    # Extrair propósito usando padrões
+    purpose_patterns = [
+        r'(nosso objetivo é|queremos|buscamos|pretendemos|o objetivo|nossa missão)',
+        r'(empresa.{0,50}(busca|quer|pretende|visa))',
+        r'(marca.{0,50}(representa|significa|busca))'
+    ]
+    
+    purpose = ""
+    for pattern in purpose_patterns:
+        matches = re.findall(pattern, text.lower())
+        if matches:
+            # Encontrar a frase completa
+            start_idx = text.lower().find(matches[0][0] if isinstance(matches[0], tuple) else matches[0])
+            if start_idx != -1:
+                # Pegar até o final da frase
+                end_idx = text.find('.', start_idx)
+                if end_idx == -1:
+                    end_idx = text.find('\n', start_idx)
+                if end_idx == -1:
+                    end_idx = start_idx + 200
+                purpose = text[start_idx:end_idx].strip()
+                break
+    
+    if not purpose:
+        # Fallback: usar primeiras frases com keywords relevantes
+        sentences = text.split('.')
+        for sentence in sentences:
+            if any(kw.lower() in sentence.lower() for kw in keywords[:3]):
+                purpose = sentence.strip()
+                break
+    
+    # Extrair valores baseado em keywords e padrões
+    value_keywords = [
+        'sustentabilidade', 'qualidade', 'inovação', 'excelência', 'transparência',
+        'responsabilidade', 'confiança', 'autenticidade', 'criatividade', 'paixão',
+        'compromisso', 'integridade', 'diversidade', 'inclusão', 'respeito'
+    ]
+    
+    values = []
+    for attr in attributes:
+        if attr.lower() in value_keywords:
+            values.append(attr.title())
+    
+    # Adicionar valores inferidos do texto
+    for value_kw in value_keywords:
+        if value_kw in text.lower() and value_kw.title() not in values:
+            values.append(value_kw.title())
+    
+    # Extrair traços de personalidade
+    personality_mapping = {
+        'moderno': ['Inovador', 'Contemporâneo', 'Dinâmico'],
+        'jovem': ['Energético', 'Descontraído', 'Vibrante'],
+        'premium': ['Sofisticado', 'Elegante', 'Exclusivo'],
+        'sustentável': ['Consciente', 'Responsável', 'Natural'],
+        'tradicional': ['Confiável', 'Sólido', 'Estabelecido'],
+        'criativo': ['Inspirador', 'Original', 'Artístico'],
+        'tecnológico': ['Eficiente', 'Preciso', 'Avançado']
+    }
+    
+    personality_traits = []
+    for attr in attributes:
+        if attr.lower() in personality_mapping:
+            personality_traits.extend(personality_mapping[attr.lower()])
+    
+    # Mapear tensões criativas baseado nos atributos
+    tensions = {
+        'traditional_contemporary': 50,
+        'corporate_creative': 50,
+        'minimal_detailed': 50,
+        'serious_playful': 50
+    }
+    
+    # Ajustar baseado nos atributos
+    traditional_score = 0
+    contemporary_score = 0
+    corporate_score = 0
+    creative_score = 0
+    minimal_score = 0
+    detailed_score = 0
+    serious_score = 0
+    playful_score = 0
+    
+    for attr in attributes:
+        attr_lower = attr.lower()
+        
+        # Tradicional vs Contemporâneo
+        if attr_lower in ['tradicional', 'clássico', 'estabelecido']:
+            traditional_score += 20
+        elif attr_lower in ['moderno', 'contemporâneo', 'inovador', 'futurista']:
+            contemporary_score += 20
+        
+        # Corporativo vs Criativo
+        if attr_lower in ['profissional', 'corporativo', 'formal']:
+            corporate_score += 20
+        elif attr_lower in ['criativo', 'artístico', 'inovador']:
+            creative_score += 20
+        
+        # Minimal vs Detalhado
+        if attr_lower in ['minimalista', 'simples', 'limpo']:
+            minimal_score += 20
+        elif attr_lower in ['detalhado', 'elaborado', 'complexo']:
+            detailed_score += 20
+        
+        # Sério vs Descontraído
+        if attr_lower in ['sério', 'formal', 'profissional']:
+            serious_score += 20
+        elif attr_lower in ['jovem', 'descontraído', 'divertido', 'playful']:
+            playful_score += 20
+    
+    tensions['traditional_contemporary'] = max(0, min(100, 50 + contemporary_score - traditional_score))
+    tensions['corporate_creative'] = max(0, min(100, 50 + creative_score - corporate_score))
+    tensions['minimal_detailed'] = max(0, min(100, 50 + detailed_score - minimal_score))
+    tensions['serious_playful'] = max(0, min(100, 50 + playful_score - serious_score))
+    
+    return {
+        'purpose': purpose or f"Desenvolver uma marca {', '.join(attributes[:2])} que conecte com {', '.join(keywords[:2])}",
+        'values': values[:5],  # Máximo 5 valores
+        'personality_traits': list(set(personality_traits))[:6],  # Máximo 6 traços únicos
+        'creative_tensions': tensions
+    }
+
+def generate_visual_concept_data(
+    strategic_analysis: Dict[str, Any], 
+    keywords: List[str], 
+    attributes: List[str],
+    style_preferences: Dict[str, int]
+) -> List[Dict[str, Any]]:
+    """Gera dados dos conceitos visuais baseados na análise estratégica"""
+    
+    concepts = []
+    
+    # Base de fontes por estilo
+    font_combinations = {
+        'contemporary': [
+            {'primary': 'Inter', 'secondary': 'Open Sans'},
+            {'primary': 'Poppins', 'secondary': 'Roboto'},
+            {'primary': 'Montserrat', 'secondary': 'Lato'}
+        ],
+        'traditional': [
+            {'primary': 'Playfair Display', 'secondary': 'Georgia'},
+            {'primary': 'Crimson Text', 'secondary': 'Times New Roman'},
+            {'primary': 'Libre Baskerville', 'secondary': 'Lora'}
+        ],
+        'creative': [
+            {'primary': 'Fredoka One', 'secondary': 'Nunito'},
+            {'primary': 'Comfortaa', 'secondary': 'Open Sans'},
+            {'primary': 'Pacifico', 'secondary': 'Roboto'}
+        ]
+    }
+    
+    # Gerar 3 conceitos distintos
+    for i in range(3):
+        concept_id = f"concept_{i+1}"
+        
+        # Determinar estilo base
+        if style_preferences['traditional_contemporary'] > 70:
+            style_base = 'contemporary'
+        elif style_preferences['traditional_contemporary'] < 30:
+            style_base = 'traditional'
+        elif style_preferences['corporate_creative'] > 60:
+            style_base = 'creative'
+        else:
+            style_base = 'contemporary'
+        
+        # Selecionar tipografia
+        typography = font_combinations[style_base][i % len(font_combinations[style_base])]
+        
+        # Gerar paleta de cores baseada nos atributos
+        if 'sustentável' in [attr.lower() for attr in attributes]:
+            color_palettes = [
+                ['#2F855A', '#68D391', '#F0FFF4', '#C6F6D5', '#276749'],
+                ['#38A169', '#9AE6B4', '#F7FAFC', '#E6FFFA', '#22543D'],
+                ['#319795', '#81E6D9', '#E6FFFA', '#B2F5EA', '#2C7A7B']
+            ]
+        elif 'moderno' in [attr.lower() for attr in attributes]:
+            color_palettes = [
+                ['#2D3748', '#4A5568', '#E2E8F0', '#F7FAFC', '#1A202C'],
+                ['#3182CE', '#63B3ED', '#EBF8FF', '#BEE3F8', '#2B6CB0'],
+                ['#805AD5', '#B794F6', '#FAF5FF', '#E9D8FD', '#6B46C1']
+            ]
+        elif 'premium' in [attr.lower() for attr in attributes]:
+            color_palettes = [
+                ['#1A1A1A', '#D4AF37', '#F7FAFC', '#E2E8F0', '#2D2D2D'],
+                ['#2D3748', '#E53E3E', '#FFF5F5', '#FEB2B2', '#742A2A'],
+                ['#4A5568', '#38B2AC', '#E6FFFA', '#81E6D9', '#285E61']
+            ]
+        else:
+            color_palettes = [
+                ['#2B6CB0', '#4299E1', '#EBF8FF', '#90CDF4', '#2C5282'],
+                ['#38A169', '#68D391', '#F0FFF4', '#C6F6D5', '#276749'],
+                ['#805AD5', '#B794F6', '#FAF5FF', '#E9D8FD', '#6B46C1']
+            ]
+        
+        color_palette = color_palettes[i % len(color_palettes)]
+        
+        # Gerar URLs de logo fictícias (para demo)
+        logo_variations = [
+            f"https://via.placeholder.com/200x100/{''.join(color_palette[0].split('#'))}/FFFFFF?text=Logo+{i+1}+A",
+            f"https://via.placeholder.com/200x100/{''.join(color_palette[1].split('#'))}/FFFFFF?text=Logo+{i+1}+B",
+            f"https://via.placeholder.com/200x100/{''.join(color_palette[2].split('#'))}/000000?text=Logo+{i+1}+C",
+            f"https://via.placeholder.com/200x100/FFFFFF/{''.join(color_palette[0].split('#'))}?text=Logo+{i+1}+D"
+        ]
+        
+        # Gerar elementos gráficos (placeholders)
+        graphic_elements = [
+            f"https://via.placeholder.com/100x100/{''.join(color_palette[0].split('#'))}/FFFFFF?text=Element+1",
+            f"https://via.placeholder.com/100x100/{''.join(color_palette[1].split('#'))}/FFFFFF?text=Element+2"
+        ]
+        
+        # Gerar rationale estratégico
+        personality_str = ', '.join(strategic_analysis.get('personality_traits', [])[:2])
+        values_str = ', '.join(strategic_analysis.get('values', [])[:2])
+        
+        rationale = f"Conceito {i+1} combina {personality_str} com elementos visuais que refletem {values_str}. "
+        if style_preferences['traditional_contemporary'] > 50:
+            rationale += "Design contemporâneo com linhas limpas e tipografia moderna. "
+        else:
+            rationale += "Abordagem clássica com elementos tradicionais refinados. "
+        
+        if style_preferences['corporate_creative'] > 60:
+            rationale += "Expressão criativa balanceada com profissionalismo."
+        else:
+            rationale += "Foco em credibilidade e confiança institucional."
+        
+        # Gerar prompt para Stable Diffusion (simulado)
+        style_prompt = f"logo design, {style_base} style, {', '.join(keywords[:3])}, "
+        style_prompt += f"color palette {' '.join(color_palette[:3])}, minimalist, professional, vector art"
+        
+        concept = {
+            'id': concept_id,
+            'logo_variations': logo_variations,
+            'color_palette': color_palette,
+            'typography': typography,
+            'graphic_elements': graphic_elements,
+            'rationale': rationale,
+            'style_prompt': style_prompt
+        }
+        
+        concepts.append(concept)
+    
+    return concepts
+
+def generate_brand_kit_data(
+    brand_name: str,
+    selected_concept: Dict[str, Any],
+    strategic_analysis: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Gera dados completos do kit de marca profissional"""
+    
+    # URLs simuladas para demonstração
+    base_url = "https://example.com/assets"
+    
+    # Gerar assets package
+    assets_package = {
+        "logos": [
+            {"format": "PNG", "url": f"{base_url}/{brand_name.lower()}_logo_main.png"},
+            {"format": "SVG", "url": f"{base_url}/{brand_name.lower()}_logo_main.svg"},
+            {"format": "PNG", "url": f"{base_url}/{brand_name.lower()}_logo_alt.png"},
+            {"format": "SVG", "url": f"{base_url}/{brand_name.lower()}_logo_alt.svg"},
+            {"format": "PDF", "url": f"{base_url}/{brand_name.lower()}_logo_vector.pdf"}
+        ],
+        "colors": [
+            {"name": "Primary", "hex": selected_concept['color_palette'][0], "rgb": "RGB(45, 55, 72)"},
+            {"name": "Secondary", "hex": selected_concept['color_palette'][1], "rgb": "RGB(66, 153, 225)"},
+            {"name": "Accent", "hex": selected_concept['color_palette'][2], "rgb": "RGB(235, 248, 255)"},
+            {"name": "Text", "hex": selected_concept['color_palette'][3], "rgb": "RGB(144, 205, 244)"},
+            {"name": "Background", "hex": selected_concept['color_palette'][4], "rgb": "RGB(44, 82, 130)"}
+        ],
+        "fonts": [
+            {"name": selected_concept['typography']['primary'], "weights": ["Regular", "Medium", "Bold"]},
+            {"name": selected_concept['typography']['secondary'], "weights": ["Regular", "Italic", "Bold"]}
+        ],
+        "mockups": [
+            {"type": "Business Card", "url": f"{base_url}/{brand_name.lower()}_business_card.png"},
+            {"type": "Letterhead", "url": f"{base_url}/{brand_name.lower()}_letterhead.png"},
+            {"type": "Social Media Profile", "url": f"{base_url}/{brand_name.lower()}_social.png"},
+            {"type": "Website Header", "url": f"{base_url}/{brand_name.lower()}_website.png"}
+        ]
+    }
+    
+    # Gerar páginas das guidelines
+    guidelines_pages = {
+        "cover": f"{base_url}/{brand_name.lower()}_guidelines_cover.png",
+        "logo_usage": f"{base_url}/{brand_name.lower()}_guidelines_logo.png",
+        "color_palette": f"{base_url}/{brand_name.lower()}_guidelines_colors.png",
+        "typography": f"{base_url}/{brand_name.lower()}_guidelines_typography.png",
+        "applications": f"{base_url}/{brand_name.lower()}_guidelines_applications.png"
+    }
+    
+    # URLs dos documentos principais
+    guidelines_pdf = f"{base_url}/{brand_name.lower()}_brand_guidelines.pdf"
+    presentation_deck = f"{base_url}/{brand_name.lower()}_presentation.pptx"
+    
+    brand_kit = {
+        "brand_name": brand_name,
+        "guidelines_pdf": guidelines_pdf,
+        "assets_package": assets_package,
+        "presentation_deck": presentation_deck,
+        "guidelines_pages": guidelines_pages,
+        "generation_metadata": {
+            "generated_at": datetime.now().isoformat(),
+            "concept_used": selected_concept['id'],
+            "strategic_foundation": {
+                "purpose": strategic_analysis.get('purpose', ''),
+                "values": strategic_analysis.get('values', []),
+                "personality": strategic_analysis.get('personality_traits', [])
+            },
+            "deliverables": {
+                "guidelines_pages": 15,
+                "logo_variations": len(assets_package['logos']),
+                "color_palette_size": len(assets_package['colors']),
+                "font_pairs": len(assets_package['fonts']),
+                "mockup_applications": len(assets_package['mockups'])
+            }
+        }
+    }
+    
+    return brand_kit
+
 # Modelos de dados
+class BrandKitRequest(BaseModel):
+    brief_id: str
+    project_id: Optional[str] = None
+    brand_name: str
+    selected_concept: Dict[str, Any]
+    strategic_analysis: Dict[str, Any]
+    kit_preferences: Dict[str, Any]
+
+class VisualConceptRequest(BaseModel):
+    brief_id: str
+    project_id: Optional[str] = None
+    strategic_analysis: Dict[str, Any]
+    keywords: List[str]
+    attributes: List[str]
+    style_preferences: Dict[str, int]
+
+class StrategicAnalysisRequest(BaseModel):
+    brief_id: str
+    text: str
+    keywords: List[str]
+    attributes: List[str]
+    project_id: Optional[str] = None
+
 class ProjectRequest(BaseModel):
     name: str
     user_id: Optional[str] = None
@@ -495,6 +982,80 @@ class FinalizeBrandKitRequest(BaseModel):
     brand_name: str
     kit_preferences: Dict[str, Any]
 
+# Endpoint para parsing de documentos
+@app.post("/parse-document")
+async def parse_document(
+    file: UploadFile = File(...),
+    project_id: Optional[str] = Form(None)
+):
+    """
+    Faz upload e parsing de documento estratégico, extraindo seções relevantes
+    """
+    try:
+        # Validar tipo de arquivo
+        allowed_types = [
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "text/plain",
+            "application/msword"
+        ]
+        
+        if file.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400, 
+                detail="Tipo de arquivo não suportado. Use PDF, DOCX ou TXT."
+            )
+        
+        # Extrair texto do arquivo
+        text_content = extract_text_from_file(file)
+        
+        if len(text_content.strip()) < 100:
+            raise HTTPException(
+                status_code=400,
+                detail="Documento muito curto. Mínimo de 100 caracteres necessários."
+            )
+        
+        # Analisar seções estratégicas
+        sections = analyze_document_sections(text_content)
+        
+        # Calcular confidence geral
+        overall_confidence = calculate_overall_confidence(sections)
+        
+        # Preparar resultado
+        upload_result = {
+            "filename": file.filename,
+            "sections": sections,
+            "overall_confidence": overall_confidence,
+            "total_words": len(text_content.split()),
+            "processed_at": datetime.now().isoformat()
+        }
+        
+        # Salvar no banco se project_id fornecido
+        if project_id:
+            try:
+                document_data = {
+                    "project_id": project_id,
+                    "filename": file.filename,
+                    "content_type": file.content_type,
+                    "extracted_text": text_content,
+                    "parsed_sections": sections,
+                    "confidence_score": overall_confidence,
+                    "word_count": len(text_content.split()),
+                    "created_at": datetime.now().isoformat()
+                }
+                
+                supabase.table("uploaded_documents").insert(document_data).execute()
+                
+            except Exception as db_error:
+                print(f"Erro ao salvar documento no banco: {db_error}")
+        
+        return upload_result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao processar documento: {str(e)}")
+
 # Endpoints para Projetos
 @app.post("/projects")
 async def create_project(request: ProjectRequest):
@@ -524,6 +1085,132 @@ async def get_user_projects(user_id: str):
         return {"projects": result.data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# Endpoint para geração do kit de marca final
+@app.post("/generate-brand-kit")
+async def generate_brand_kit(request: BrandKitRequest):
+    """
+    Gera o kit de marca completo incluindo brand guidelines, assets em múltiplos 
+    formatos, deck de apresentação e mockups de aplicação
+    """
+    try:
+        # Gerar kit de marca completo
+        brand_kit = generate_brand_kit_data(
+            request.brand_name,
+            request.selected_concept,
+            request.strategic_analysis
+        )
+        
+        # Salvar no banco de dados se project_id fornecido
+        if request.project_id:
+            try:
+                final_kit_data = {
+                    "brief_id": request.brief_id,
+                    "project_id": request.project_id,
+                    "brand_name": request.brand_name,
+                    "final_brand_kit": brand_kit,
+                    "concept_used": request.selected_concept,
+                    "strategic_analysis": request.strategic_analysis,
+                    "kit_preferences": request.kit_preferences,
+                    "created_at": datetime.now().isoformat()
+                }
+                
+                supabase.table("final_brand_kits").insert(final_kit_data).execute()
+                
+            except Exception as db_error:
+                print(f"Erro ao salvar kit de marca final: {db_error}")
+        
+        return brand_kit
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro na geração do kit de marca: {str(e)}")
+
+# Endpoint para geração de conceitos visuais
+@app.post("/generate-visual-concepts")
+async def generate_visual_concepts(request: VisualConceptRequest):
+    """
+    Gera 3 conceitos visuais distintos baseados na análise estratégica usando Stable Diffusion XL
+    """
+    try:
+        # Gerar conceitos visuais
+        concepts = generate_visual_concept_data(
+            request.strategic_analysis,
+            request.keywords,
+            request.attributes,
+            request.style_preferences
+        )
+        
+        # Preparar resultado
+        visual_data = {
+            'concepts': concepts,
+            'generation_metadata': {
+                'model': 'Stable Diffusion XL (simulated)',
+                'timestamp': datetime.now().isoformat(),
+                'parameters': {
+                    'style_preferences': request.style_preferences,
+                    'keywords_used': request.keywords,
+                    'attributes_used': request.attributes,
+                    'concepts_generated': len(concepts)
+                }
+            }
+        }
+        
+        # Salvar no banco de dados se project_id fornecido
+        if request.project_id:
+            try:
+                visual_concepts_data = {
+                    "brief_id": request.brief_id,
+                    "project_id": request.project_id,
+                    "generated_concepts": visual_data,
+                    "strategic_analysis_used": request.strategic_analysis,
+                    "style_preferences": request.style_preferences,
+                    "created_at": datetime.now().isoformat()
+                }
+                
+                supabase.table("visual_concepts").insert(visual_concepts_data).execute()
+                
+            except Exception as db_error:
+                print(f"Erro ao salvar conceitos visuais: {db_error}")
+        
+        return visual_data
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro na geração de conceitos visuais: {str(e)}")
+
+# Endpoint para análise estratégica
+@app.post("/strategic-analysis")
+async def strategic_analysis(request: StrategicAnalysisRequest):
+    """
+    Realiza análise estratégica detalhada extraindo propósito, valores,
+    personalidade e mapeando tensões criativas
+    """
+    try:
+        # Realizar análise estratégica
+        strategic_data = analyze_strategic_elements(
+            request.text, 
+            request.keywords, 
+            request.attributes
+        )
+        
+        # Salvar no banco de dados se project_id fornecido
+        if request.project_id:
+            try:
+                analysis_data = {
+                    "brief_id": request.brief_id,
+                    "project_id": request.project_id,
+                    "strategic_analysis": strategic_data,
+                    "created_at": datetime.now().isoformat()
+                }
+                
+                supabase.table("strategic_analyses").insert(analysis_data).execute()
+                
+            except Exception as db_error:
+                print(f"Erro ao salvar análise estratégica: {db_error}")
+        
+        return strategic_data
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro na análise estratégica: {str(e)}")
 
 # Endpoint aprimorado para análise de briefing
 @app.post("/analyze-brief")
