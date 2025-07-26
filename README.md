@@ -46,6 +46,8 @@ SUPABASE_ANON_KEY="sua_chave_anon_supabase_aqui"
 HUGGINGFACE_API_TOKEN="seu_token_huggingface_aqui"
 ```
 
+**Nota:** O token Hugging Face é opcional. O sistema funcionará sem ele usando fallbacks.
+
 4. Execute o servidor:
 ```bash
 uvicorn main:app --reload
@@ -77,7 +79,7 @@ O frontend estará disponível em: http://localhost:3000
 1. Crie um projeto no [Supabase](https://supabase.com)
 2. Vá em "Project Settings" > "API" e copie a URL e anon key
 3. Cole os valores no arquivo `.env`
-4. No SQL Editor do Supabase, execute o script para criar as tabelas:
+4. No SQL Editor do Supabase, execute o script `database_schema.sql` ou cole o seguinte código:
 
 ```sql
 -- Tabela para gerenciar projetos
@@ -109,11 +111,22 @@ CREATE TABLE generated_assets (
 
 ## Funcionalidades Implementadas
 
-### Fase 1: Onboarding Semântico
-- Interface para inserção de briefing do cliente
-- Análise automática usando modelos de IA da Hugging Face
-- Extração de palavras-chave e atributos de marca
-- Exibição de tags editáveis com os resultados da análise
+### Fase 1: Onboarding Semântico (Completa)
+- ✅ **Sistema de Projetos**: Criação e gerenciamento de projetos
+- ✅ **Análise Avançada de IA**: Extração de palavras-chave usando YAKE
+- ✅ **Classificação de Atributos**: 24+ atributos de marca categorizados
+- ✅ **Tags Editáveis**: Sistema completo para editar/adicionar/remover tags
+- ✅ **Persistência de Dados**: Salvamento automático no Supabase
+- ✅ **Análise de Sentimento**: Contexto adicional sobre o briefing
+- ✅ **Interface Moderna**: UI responsiva com Tailwind CSS
+- ✅ **Histórico de Versões**: Controle de alterações nas tags
+
+### Melhorias Técnicas
+- **Modelos de IA Aprimorados**: YAKE para keywords + RoBERTa para sentimentos
+- **API RESTful Completa**: Endpoints para projetos, briefings e atualizações
+- **CORS Configurado**: Comunicação segura entre frontend e backend
+- **Tratamento de Erros**: Sistema robusto de error handling
+- **Validação de Dados**: Modelos Pydantic para validação de entrada
 
 ## Tecnologias Utilizadas
 
@@ -131,23 +144,56 @@ CREATE TABLE generated_assets (
 
 ## APIs Disponíveis
 
-### POST /analyze-brief
-Analisa um briefing de texto e extrai palavras-chave e atributos de marca.
+### POST /projects
+Criar um novo projeto.
 
 **Request:**
 ```json
 {
-  "text": "Somos uma nova marca de café sustentável para a Geração Z..."
+  "name": "Marca de Café Sustentável",
+  "user_id": "optional-user-id"
+}
+```
+
+### GET /projects/{user_id}
+Obter todos os projetos de um usuário.
+
+### POST /analyze-brief
+Analisa um briefing e salva no projeto (se especificado).
+
+**Request:**
+```json
+{
+  "text": "Somos uma nova marca de café sustentável para a Geração Z...",
+  "project_id": "optional-project-uuid"
 }
 ```
 
 **Response:**
 ```json
 {
-  "keywords": ["café", "sustentável", "nova"],
-  "attributes": ["moderno", "sustentável", "vibrante"]
+  "brief_id": "uuid-do-briefing",
+  "keywords": ["café", "sustentável", "geração z"],
+  "attributes": ["moderno", "sustentável", "vibrante", "jovem"],
+  "sentiment": "positive",
+  "project_id": "uuid-do-projeto"
 }
 ```
+
+### PUT /update-brief
+Atualizar tags editadas pelo usuário.
+
+**Request:**
+```json
+{
+  "brief_id": "uuid-do-briefing",
+  "keywords": ["café", "sustentável", "eco-friendly"],
+  "attributes": ["moderno", "sustentável", "premium"]
+}
+```
+
+### GET /projects/{project_id}/briefs
+Obter todos os briefings de um projeto específico.
 
 ## Próximos Passos
 
