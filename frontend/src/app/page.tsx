@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRouter } from 'next/navigation';
 
 interface Project {
   id: string;
@@ -21,6 +22,8 @@ interface AnalysisResult {
 }
 
 export default function HomePage() {
+  const router = useRouter();
+  
   // Estados existentes
   const [brief, setBrief] = useState('');
   const [keywords, setKeywords] = useState<string[]>([]);
@@ -170,6 +173,16 @@ export default function HomePage() {
 
   const removeAttribute = (attribute: string) => {
     setEditedAttributes(editedAttributes.filter(a => a !== attribute));
+  };
+
+  const navigateToGalaxy = () => {
+    const params = new URLSearchParams();
+    params.set('keywords', keywords.join(','));
+    params.set('attributes', attributes.join(','));
+    if (selectedProject) params.set('projectId', selectedProject);
+    if (currentBriefId) params.set('briefId', currentBriefId);
+    
+    router.push(`/galaxy?${params.toString()}`);
   };
 
   return (
@@ -369,6 +382,19 @@ export default function HomePage() {
                   <p className="text-sm text-green-700">
                     ✅ Análise salva no projeto "{projects.find(p => p.id === selectedProject)?.name}"
                   </p>
+                </div>
+              )}
+
+              {/* Botão para Fase 2 */}
+              {(keywords.length > 0 || attributes.length > 0) && (
+                <div className="flex justify-center pt-6">
+                  <Button 
+                    onClick={navigateToGalaxy}
+                    size="lg"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    Continuar para Fase 2: Galáxia de Conceitos →
+                  </Button>
                 </div>
               )}
             </div>
