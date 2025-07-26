@@ -282,8 +282,22 @@ export default function GalaxyPage() {
                     onClick={generateGalaxy}
                     disabled={isLoading}
                     size="sm"
+                    variant="outline"
                   >
                     Regenerar
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      const params = new URLSearchParams();
+                      params.set('keywords', keywords.join(','));
+                      params.set('attributes', attributes.join(','));
+                      if (projectId) params.set('projectId', projectId);
+                      if (briefId) params.set('briefId', briefId);
+                      router.push(`/curation?${params.toString()}`);
+                    }}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  >
+                    Ir para Curadoria →
                   </Button>
                 </>
               )}

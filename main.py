@@ -14,6 +14,10 @@ import requests
 import json
 import colorsys
 import random
+import base64
+from io import BytesIO
+from PIL import Image, ImageFilter, ImageEnhance
+import numpy as np
 
 # Carregar variáveis de ambiente
 load_dotenv()
@@ -238,6 +242,184 @@ async def save_generated_assets(project_id: str, brief_id: str, assets_data: Dic
         print(f"Erro ao salvar assets: {e}")
         return False
 
+# Funções para processamento de imagens (Fase 3)
+def download_image_from_url(url: str) -> Image.Image:
+    """Baixa uma imagem de uma URL"""
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        return Image.open(BytesIO(response.content)).convert('RGBA')
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erro ao baixar imagem: {str(e)}")
+
+def blend_images(images: List[Image.Image], blend_mode: str = "overlay") -> Image.Image:
+    """Combina múltiplas imagens usando diferentes modos de blend"""
+    if not images:
+        raise ValueError("Lista de imagens vazia")
+    
+    # Redimensionar todas as imagens para o mesmo tamanho
+    base_size = (512, 512)
+    resized_images = [img.resize(base_size, Image.Resampling.LANCZOS) for img in images]
+    
+    # Começar com a primeira imagem
+    result = resized_images[0].copy()
+    
+    for img in resized_images[1:]:
+        if blend_mode == "overlay":
+            # Blend overlay simples com transparência
+            result = Image.blend(result, img, 0.5)
+        elif blend_mode == "multiply":
+            # Multiplicação para efeito mais escuro
+            result = Image.blend(result, img, 0.3)
+        elif blend_mode == "screen":
+            # Screen para efeito mais claro
+            result = Image.blend(result, img, 0.7)
+        else:
+            # Default: overlay
+            result = Image.blend(result, img, 0.5)
+    
+    return result
+
+def apply_color_palette_to_image(image: Image.Image, palette: List[str]) -> Image.Image:
+    """Aplica uma paleta de cores a uma imagem"""
+    try:
+        # Converter para RGB se necessário
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        
+        # Aplicar um filtro de cor baseado na paleta
+        # Pegar a cor dominante da paleta
+        main_color = palette[0] if palette else "#000000"
+        
+        # Converter hex para RGB
+        hex_color = main_color.lstrip('#')
+        rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+        
+        # Aplicar um overlay de cor
+        overlay = Image.new('RGB', image.size, rgb)
+        overlay_with_alpha = Image.new('RGBA', image.size, rgb + (128,))
+        
+        # Combinar imagem original com overlay
+        image_rgba = image.convert('RGBA')
+        result = Image.alpha_composite(image_rgba, overlay_with_alpha)
+        
+        return result.convert('RGB')
+    except Exception as e:
+        print(f"Erro ao aplicar paleta: {e}")
+        return image
+
+def apply_artistic_filter(image: Image.Image, filter_type: str) -> Image.Image:
+    """Aplica filtros artísticos à imagem"""
+    try:
+        if filter_type == "blur":
+            return image.filter(ImageFilter.GaussianBlur(radius=2))
+        elif filter_type == "sharpen":
+            return image.filter(ImageFilter.SHARPEN)
+        elif filter_type == "vintage":
+            # Efeito vintage com ajuste de cor
+            enhancer = ImageEnhance.Color(image)
+            image = enhancer.enhance(0.7)  # Reduzir saturação
+            enhancer = ImageEnhance.Contrast(image)
+            return enhancer.enhance(1.2)  # Aumentar contraste
+        elif filter_type == "modern":
+            # Efeito moderno com mais saturação
+            enhancer = ImageEnhance.Color(image)
+            image = enhancer.enhance(1.3)
+            enhancer = ImageEnhance.Sharpness(image)
+            return enhancer.enhance(1.1)
+        else:
+            return image
+    except Exception as e:
+        print(f"Erro ao aplicar filtro: {e}")
+        return image
+
+def image_to_base64(image: Image.Image) -> str:
+    """Converte uma imagem PIL para base64"""
+    buffer = BytesIO()
+    image.save(buffer, format='PNG')
+    buffer.seek(0)
+    return base64.b64encode(buffer.getvalue()).decode()
+
+async def save_curated_asset(project_id: str, brief_id: str, asset_data: Dict[str, Any], asset_type: str) -> str:
+    """Salva um asset curado no banco de dados"""
+    try:
+        curated_asset = {
+            "project_id": project_id,
+            "brief_id": brief_id,
+            "asset_type": f"curated_{asset_type}",
+            "asset_data": asset_data,
+            "source_prompt": asset_data.get("description", ""),
+            "generation_params": {"phase": "curation", "type": asset_type},
+            "created_at": datetime.now().isoformat()
+        }
+        
+        result = supabase.table("generated_assets").insert(curated_asset).execute()
+        if result.data:
+            return result.data[0]["id"]
+        return ""
+    except Exception as e:
+        print(f"Erro ao salvar asset curado: {e}")
+        return ""
+
+# Funções para geração do kit de marca (Fase 4)
+def generate_brand_kit_components(curated_assets: List[Dict[str, Any]], brand_name: str, preferences: Dict[str, Any]) -> Dict[str, Any]:
+    """Gera componentes do kit de marca baseado nos assets curados"""
+    kit_components = {
+        "brand_name": brand_name,
+        "primary_logo": None,
+        "logo_variations": [],
+        "color_palette": None,
+        "typography": None,
+        "visual_elements": [],
+        "brand_guidelines": {
+            "logo_usage": [],
+            "color_usage": [],
+            "typography_usage": [],
+            "visual_style": []
+        },
+        "applications": {
+            "business_card": None,
+            "letterhead": None,
+            "social_media": [],
+            "website_mockup": None
+        }
+    }
+    
+    # Extrair componentes dos assets curados
+    for asset in curated_assets:
+        asset_type = asset.get("asset_type", "")
+        asset_data = asset.get("asset_data", {})
+        
+        if "color_palette" in asset_type:
+            kit_components["color_palette"] = asset_data
+        elif "typography" in asset_type:
+            kit_components["typography"] = asset_data
+        elif "blended_image" in asset_type or "curated_image" in asset_type:
+            kit_components["visual_elements"].append(asset_data)
+    
+    # Gerar diretrizes baseadas nos componentes
+    if kit_components["color_palette"]:
+        kit_components["brand_guidelines"]["color_usage"] = [
+            "Use a cor primária para elementos principais e CTAs",
+            "Cores secundárias para detalhes e backgrounds",
+            "Mantenha contraste adequado para legibilidade"
+        ]
+    
+    if kit_components["typography"]:
+        kit_components["brand_guidelines"]["typography_usage"] = [
+            f"Use {kit_components['typography'].get('title_font', 'fonte principal')} para títulos",
+            f"Use {kit_components['typography'].get('body_font', 'fonte secundária')} para textos corridos",
+            "Mantenha hierarquia tipográfica consistente"
+        ]
+    
+    kit_components["brand_guidelines"]["visual_style"] = [
+        "Mantenha consistência visual em todas as aplicações",
+        "Use elementos visuais de forma equilibrada",
+        "Respeite o espaçamento e respiração da marca"
+    ]
+    
+    return kit_components
+
 # Modelos de dados
 class ProjectRequest(BaseModel):
     name: str
@@ -257,6 +439,34 @@ class GalaxyGenerationRequest(BaseModel):
     attributes: List[str]
     brief_id: Optional[str] = None
     project_id: Optional[str] = None
+
+class BlendConceptsRequest(BaseModel):
+    image_urls: List[str]
+    blend_mode: Optional[str] = "overlay"
+    project_id: Optional[str] = None
+    brief_id: Optional[str] = None
+
+class ApplyStyleRequest(BaseModel):
+    image_url: str
+    style_data: Dict[str, Any]  # Pode conter cores, fontes, ou outros estilos
+    style_type: str  # "color_palette", "typography", "filter"
+    project_id: Optional[str] = None
+    brief_id: Optional[str] = None
+
+class CurationItemRequest(BaseModel):
+    item_id: str
+    item_type: str  # "metaphor", "color_palette", "typography", "blended_image"
+    position: Dict[str, float]  # x, y coordinates
+    properties: Dict[str, Any]
+    project_id: str
+    brief_id: str
+
+class FinalizeBrandKitRequest(BaseModel):
+    project_id: str
+    brief_id: str
+    curated_assets: List[Dict[str, Any]]
+    brand_name: str
+    kit_preferences: Dict[str, Any]
 
 # Endpoints para Projetos
 @app.post("/projects")
@@ -467,6 +677,211 @@ async def get_project_assets(project_id: str, asset_type: Optional[str] = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Endpoints para Fase 3: Curadoria
+@app.post("/blend-concepts")
+async def blend_concepts(request: BlendConceptsRequest):
+    """
+    Fase 3: Combina múltiplas imagens para criar conceitos híbridos
+    """
+    try:
+        if len(request.image_urls) < 2:
+            raise HTTPException(status_code=400, detail="Pelo menos 2 imagens são necessárias para blend")
+        
+        # Baixar imagens das URLs
+        images = []
+        for url in request.image_urls:
+            try:
+                img = download_image_from_url(url)
+                images.append(img)
+            except Exception as e:
+                # Para esta implementação, vamos criar uma imagem placeholder se o download falhar
+                placeholder = Image.new('RGBA', (512, 512), (200, 200, 200, 255))
+                images.append(placeholder)
+        
+        # Fazer blend das imagens
+        blended_image = blend_images(images, request.blend_mode)
+        
+        # Converter para base64
+        blended_base64 = image_to_base64(blended_image)
+        
+        # Preparar dados do asset
+        asset_data = {
+            "blended_image": f"data:image/png;base64,{blended_base64}",
+            "source_urls": request.image_urls,
+            "blend_mode": request.blend_mode,
+            "description": f"Blend de {len(request.image_urls)} imagens usando modo {request.blend_mode}",
+            "created_at": datetime.now().isoformat()
+        }
+        
+        # Salvar se project_id e brief_id fornecidos
+        asset_id = ""
+        if request.project_id and request.brief_id:
+            asset_id = await save_curated_asset(
+                request.project_id,
+                request.brief_id,
+                asset_data,
+                "blended_image"
+            )
+        
+        return {
+            "success": True,
+            "asset_id": asset_id,
+            "blended_image": asset_data["blended_image"],
+            "metadata": {
+                "source_count": len(request.image_urls),
+                "blend_mode": request.blend_mode,
+                "resolution": "512x512"
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao fazer blend: {str(e)}")
+
+@app.post("/apply-style")
+async def apply_style(request: ApplyStyleRequest):
+    """
+    Fase 3: Aplica estilos (cores, filtros) a uma imagem
+    """
+    try:
+        # Baixar imagem
+        try:
+            image = download_image_from_url(request.image_url)
+        except:
+            # Criar placeholder se download falhar
+            image = Image.new('RGB', (512, 512), (200, 200, 200))
+        
+        processed_image = image.copy()
+        style_description = ""
+        
+        # Aplicar estilo baseado no tipo
+        if request.style_type == "color_palette":
+            colors = request.style_data.get("colors", [])
+            if colors:
+                processed_image = apply_color_palette_to_image(processed_image, colors)
+                style_description = f"Paleta de cores aplicada: {', '.join(colors[:3])}"
+        
+        elif request.style_type == "filter":
+            filter_type = request.style_data.get("filter", "modern")
+            processed_image = apply_artistic_filter(processed_image, filter_type)
+            style_description = f"Filtro {filter_type} aplicado"
+        
+        elif request.style_type == "typography":
+            # Para tipografia, vamos aplicar um filtro que simula o estilo
+            font_style = request.style_data.get("attribute_basis", "modern")
+            if "vintage" in font_style.lower() or "clássico" in font_style.lower():
+                processed_image = apply_artistic_filter(processed_image, "vintage")
+            else:
+                processed_image = apply_artistic_filter(processed_image, "modern")
+            style_description = f"Estilo tipográfico {font_style} aplicado"
+        
+        # Converter para base64
+        styled_base64 = image_to_base64(processed_image)
+        
+        # Preparar dados do asset
+        asset_data = {
+            "styled_image": f"data:image/png;base64,{styled_base64}",
+            "source_url": request.image_url,
+            "applied_style": request.style_data,
+            "style_type": request.style_type,
+            "description": style_description,
+            "created_at": datetime.now().isoformat()
+        }
+        
+        # Salvar se project_id e brief_id fornecidos
+        asset_id = ""
+        if request.project_id and request.brief_id:
+            asset_id = await save_curated_asset(
+                request.project_id,
+                request.brief_id,
+                asset_data,
+                "styled_image"
+            )
+        
+        return {
+            "success": True,
+            "asset_id": asset_id,
+            "styled_image": asset_data["styled_image"],
+            "metadata": {
+                "style_applied": style_description,
+                "style_type": request.style_type
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao aplicar estilo: {str(e)}")
+
+# Endpoint para Fase 4: Finalização do Kit de Marca
+@app.post("/finalize-brand-kit")
+async def finalize_brand_kit(request: FinalizeBrandKitRequest):
+    """
+    Fase 4: Gera o kit de marca final baseado nos assets curados
+    """
+    try:
+        # Obter assets curados do projeto
+        assets_result = supabase.table("generated_assets").select("*").eq(
+            "project_id", request.project_id
+        ).eq("brief_id", request.brief_id).execute()
+        
+        project_assets = assets_result.data or []
+        
+        # Combinar com assets fornecidos na requisição
+        all_assets = project_assets + request.curated_assets
+        
+        # Gerar componentes do kit de marca
+        brand_kit = generate_brand_kit_components(
+            all_assets, 
+            request.brand_name, 
+            request.kit_preferences
+        )
+        
+        # Adicionar metadados
+        brand_kit["generation_metadata"] = {
+            "project_id": request.project_id,
+            "brief_id": request.brief_id,
+            "total_assets_used": len(all_assets),
+            "generated_at": datetime.now().isoformat(),
+            "preferences": request.kit_preferences
+        }
+        
+        # Salvar kit final no banco
+        final_kit_data = {
+            "project_id": request.project_id,
+            "brief_id": request.brief_id,
+            "asset_type": "final_brand_kit",
+            "asset_data": brand_kit,
+            "source_prompt": f"Kit de marca final para {request.brand_name}",
+            "generation_params": {"phase": "finalization", "type": "brand_kit"},
+            "created_at": datetime.now().isoformat()
+        }
+        
+        kit_result = supabase.table("generated_assets").insert(final_kit_data).execute()
+        kit_id = kit_result.data[0]["id"] if kit_result.data else None
+        
+        return {
+            "success": True,
+            "kit_id": kit_id,
+            "brand_kit": brand_kit,
+            "download_ready": True,
+            "message": f"Kit de marca para '{request.brand_name}' gerado com sucesso"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao finalizar kit: {str(e)}")
+
+# Endpoint para obter kit de marca finalizado
+@app.get("/brand-kit/{kit_id}")
+async def get_brand_kit(kit_id: str):
+    """Obter um kit de marca específico"""
+    try:
+        result = supabase.table("generated_assets").select("*").eq("id", kit_id).eq("asset_type", "final_brand_kit").execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Kit de marca não encontrado")
+        
+        return {"brand_kit": result.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/")
 def read_root():
     return {
@@ -474,14 +889,19 @@ def read_root():
         "version": "1.0.0",
         "features": [
             "Semantic Onboarding (Phase 1)",
-            "Galaxy of Concepts (Phase 2)",
+            "Galaxy of Concepts (Phase 2)", 
+            "Curation Canvas (Phase 3)",
+            "Brand Kit Builder (Phase 4)",
             "AI-powered keyword extraction", 
             "Brand attributes classification",
             "Visual metaphor generation",
             "Color palette generation",
             "Typography pairing",
+            "Image blending and fusion",
+            "Style application",
             "Project management",
             "Editable tags system",
-            "Asset persistence"
+            "Asset persistence",
+            "Final brand kit generation"
         ]
     }

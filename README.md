@@ -1,23 +1,27 @@
-# Brand Co-Pilot MVP
+# Brand Co-Pilot - Plataforma Completa de Desenvolvimento de Marca
 
-MVP do projeto Brand Co-Pilot com a Fase 1 (Onboarding Semântico) implementada.
+Sistema completo de co-criação de marca alimentado por IA, implementando todas as 4 fases do processo criativo: do briefing ao kit de marca profissional.
 
 ## Estrutura do Projeto
 
 ```
 MWP/
-├── main.py                 # Backend FastAPI
-├── requirements.txt        # Dependências Python
+├── main.py                 # Backend FastAPI completo
+├── requirements.txt        # Dependências Python (inclui PIL, numpy)
+├── database_schema.sql     # Schema completo do banco
 ├── .env                   # Variáveis de ambiente
 ├── frontend/              # Aplicação Next.js
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── page.tsx   # Página principal
-│   │   │   ├── layout.tsx # Layout da aplicação
+│   │   │   ├── page.tsx          # Fase 1: Onboarding Semântico
+│   │   │   ├── galaxy/page.tsx   # Fase 2: Galáxia de Conceitos
+│   │   │   ├── curation/page.tsx # Fase 3: Tela de Curadoria
+│   │   │   ├── brand-kit/page.tsx # Fase 4: Kit de Marca Final
+│   │   │   ├── layout.tsx        # Layout da aplicação
 │   │   │   └── globals.css
-│   │   ├── components/ui/ # Componentes Shadcn UI
+│   │   ├── components/ui/        # Componentes Shadcn UI
 │   │   └── lib/
-│   └── package.json
+│   └── package.json             # Inclui react-flow, dnd-kit
 └── README.md
 ```
 
@@ -44,9 +48,11 @@ pip install -r requirements.txt
 SUPABASE_URL="sua_url_supabase_aqui"
 SUPABASE_ANON_KEY="sua_chave_anon_supabase_aqui"
 HUGGINGFACE_API_TOKEN="seu_token_huggingface_aqui"
+OPENAI_API_KEY="sua_chave_openai_aqui"           # Opcional para integração futura
+STABILITY_AI_KEY="sua_chave_stability_aqui"      # Opcional para geração de imagens
 ```
 
-**Nota:** O token Hugging Face é opcional. O sistema funcionará sem ele usando fallbacks.
+**Nota:** Os tokens de APIs externas são opcionais. O sistema funcionará com fallbacks e processamento local.
 
 4. Execute o servidor:
 ```bash
