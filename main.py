@@ -40,6 +40,13 @@ app.add_middleware(
 # Configuração do Supabase
 url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_ANON_KEY")
+
+# Validar variáveis de ambiente
+if not url or url == "SUA_URL_SUPABASE_AQUI":
+    raise ValueError("SUPABASE_URL não configurada. Configure a variável de ambiente no Railway.")
+if not key or key == "SUA_CHAVE_ANON_SUPABASE_AQUI":
+    raise ValueError("SUPABASE_ANON_KEY não configurada. Configure a variável de ambiente no Railway.")
+
 supabase: Client = create_client(url, key)
 
 # Carregar modelos de IA otimizados para deploy

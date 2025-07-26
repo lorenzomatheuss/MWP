@@ -4,7 +4,8 @@
       "Bash(python:*)",
       "Bash(pip install:*)",
       "Bash(git init:*)",
-      "Bash(npm:*)"
+      "Bash(npm:*)",
+      "Bash(printenv)"
     ],
     "deny": []
   }
