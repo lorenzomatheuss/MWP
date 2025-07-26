@@ -21,7 +21,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import 'reactflow/dist/style.css';
 
 interface GalaxyAssets {
-  metaphors: string[];
+  metaphors: Array<{
+    prompt: string;
+    image_url: string;
+  }>;
   color_palettes: Array<{
     name: string;
     colors: string[];
@@ -53,9 +56,21 @@ const MetaphorNode = ({ data }: { data: any }) => {
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-700">{data.metaphor}</p>
+        {data.metaphor?.image_url ? (
+          <div className="space-y-2">
+            <img 
+              src={data.metaphor.image_url} 
+              alt={data.metaphor.prompt}
+              className="w-full h-32 object-cover rounded-lg"
+              loading="lazy"
+            />
+            <p className="text-xs text-gray-600">{data.metaphor.prompt}</p>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-700">{data.metaphor?.prompt || data.metaphor}</p>
+        )}
         <Button variant="outline" size="sm" className="mt-2 w-full">
-          Gerar Imagem
+          {data.metaphor?.image_url ? 'Usar Esta Imagem' : 'Gerar Imagem'}
         </Button>
       </CardContent>
     </Card>
@@ -168,6 +183,7 @@ export default function GalaxyPage() {
           attributes,
           project_id: projectId,
           brief_id: briefId,
+          demo_mode: true, // Usar modo demo para hackathon
         }),
       });
 

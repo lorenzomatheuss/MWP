@@ -42,12 +42,31 @@ export default function CurationPage() {
   const keywords = searchParams?.get('keywords')?.split(',') || [];
   const attributes = searchParams?.get('attributes')?.split(',') || [];
 
-  // Simular dados de assets da galáxia (normalmente viriam da fase anterior)
+  // Assets pré-carregados para demonstração rápida (hackathon mode)
   const [galaxyAssets] = useState([
     {
       id: 'metaphor-1',
       type: 'metaphor' as const,
-      data: { metaphor: 'Café sustentável em circuitos tecnológicos' }
+      data: { 
+        metaphor: 'Café sustentável em circuitos tecnológicos',
+        image_url: 'https://images.unsplash.com/photo-1554755229-ca4470e22238?q=80&w=1974&auto=format&fit=crop'
+      }
+    },
+    {
+      id: 'metaphor-2',
+      type: 'metaphor' as const,
+      data: { 
+        metaphor: 'Natureza em geometria minimalista',
+        image_url: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1974&auto=format&fit=crop'
+      }
+    },
+    {
+      id: 'metaphor-3',
+      type: 'metaphor' as const,
+      data: { 
+        metaphor: 'Conceito premium em mármore',
+        image_url: 'https://images.unsplash.com/photo-1621358351138-294cb503f3a6?q=80&w=1974&auto=format&fit=crop'
+      }
     },
     {
       id: 'palette-1', 
@@ -59,6 +78,15 @@ export default function CurationPage() {
       }
     },
     {
+      id: 'palette-2', 
+      type: 'color_palette' as const,
+      data: { 
+        name: 'Paleta Premium',
+        colors: ['#1A1A1A', '#D4AF37', '#F7FAFC', '#E2E8F0'],
+        attribute_basis: 'premium'
+      }
+    },
+    {
       id: 'typography-1',
       type: 'typography' as const,
       data: {
@@ -66,6 +94,16 @@ export default function CurationPage() {
         title_font: 'Montserrat',
         body_font: 'Open Sans',
         attribute_basis: 'moderno'
+      }
+    },
+    {
+      id: 'typography-2',
+      type: 'typography' as const,
+      data: {
+        name: 'Par Premium',
+        title_font: 'Playfair Display',
+        body_font: 'Lato',
+        attribute_basis: 'premium'
       }
     }
   ]);
@@ -136,9 +174,9 @@ export default function CurationPage() {
 
     setIsBlending(true);
     try {
-      // Simular URLs de imagem (normalmente seriam URLs reais)
+      // URLs de imagem (suporte para image_url e image_data)
       const imageUrls = imageAssets.map(asset => 
-        asset.data.image_data || `https://picsum.photos/512/512?random=${asset.id}`
+        asset.data.image_data || asset.data.image_url || `https://picsum.photos/512/512?random=${asset.id}`
       );
 
       const response = await fetch('http://127.0.0.1:8000/blend-concepts', {
@@ -203,7 +241,7 @@ export default function CurationPage() {
       const imageAsset = imageAssets[0];
       const colorAsset = colorAssets[0];
       
-      const imageUrl = imageAsset.data.image_data || `https://picsum.photos/512/512?random=${imageAsset.id}`;
+      const imageUrl = imageAsset.data.image_data || imageAsset.data.image_url || `https://picsum.photos/512/512?random=${imageAsset.id}`;
 
       const response = await fetch('http://127.0.0.1:8000/apply-style', {
         method: 'POST',
@@ -335,8 +373,22 @@ export default function CurationPage() {
                   )}
                   
                   {asset.type === 'metaphor' && (
-                    <div className="text-xs text-gray-600 line-clamp-2">
-                      {asset.data.metaphor}
+                    <div>
+                      {asset.data.image_url ? (
+                        <img 
+                          src={asset.data.image_url} 
+                          alt={asset.data.metaphor}
+                          className="w-full h-16 object-cover rounded mb-1"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-16 bg-gray-200 rounded flex items-center justify-center mb-1">
+                          <Image className="h-6 w-6 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="text-xs text-gray-600 line-clamp-2">
+                        {asset.data.metaphor}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -429,9 +481,9 @@ export default function CurationPage() {
                         
                         {(asset.type === 'image' || asset.type === 'blended') && (
                           <div>
-                            {asset.data.image_data ? (
+                            {asset.data.image_data || asset.data.image_url ? (
                               <img 
-                                src={asset.data.image_data} 
+                                src={asset.data.image_data || asset.data.image_url} 
                                 alt="Asset" 
                                 className="w-full h-20 object-cover rounded"
                               />
@@ -441,7 +493,26 @@ export default function CurationPage() {
                               </div>
                             )}
                             <div className="text-xs text-gray-600 mt-1">
-                              {asset.data.description || 'Elemento visual'}
+                              {asset.data.description || asset.data.metaphor || 'Elemento visual'}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {asset.type === 'metaphor' && (
+                          <div>
+                            {asset.data.image_url ? (
+                              <img 
+                                src={asset.data.image_url} 
+                                alt={asset.data.metaphor}
+                                className="w-full h-20 object-cover rounded"
+                              />
+                            ) : (
+                              <div className="w-full h-20 bg-gray-200 rounded flex items-center justify-center">
+                                <Image className="h-8 w-8 text-gray-400" />
+                              </div>
+                            )}
+                            <div className="text-xs text-gray-600 mt-1">
+                              {asset.data.metaphor}
                             </div>
                           </div>
                         )}

@@ -251,7 +251,7 @@ export default function HomePage() {
         <CardContent>
           <div className="grid w-full gap-4">
             <Textarea
-              placeholder="Ex: Somos uma nova marca de café sustentável para a Geração Z..."
+              placeholder="Ex: Queremos criar uma marca para uma cafeteria sustentável e moderna no centro de São Paulo. Nosso público são profissionais jovens, de 25-40 anos, que valorizam qualidade, sustentabilidade e experiências autênticas. O ambiente deve transmitir inovação tecnológica mas com toque humano e aconchegante."
               value={brief}
               onChange={(e) => setBrief(e.target.value)}
               rows={6}

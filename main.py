@@ -67,34 +67,60 @@ except Exception as e:
     brand_attributes_classifier = None
     sentiment_analyzer = None
 
+# URLs pré-geradas para demonstração (estratégia anti-falha de API)
+PRE_GENERATED_METAPHOR_IMAGES = [
+    "https://images.unsplash.com/photo-1554755229-ca4470e22238?q=80&w=1974&auto=format&fit=crop", # café e tecnologia
+    "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1974&auto=format&fit=crop", # café e natureza
+    "https://images.unsplash.com/photo-1621358351138-294cb503f3a6?q=80&w=1974&auto=format&fit=crop", # café e minimalismo
+    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop", # escritório moderno
+    "https://images.unsplash.com/photo-1518709268805-4e9042af2176?q=80&w=2025&auto=format&fit=crop", # geometria abstrata
+    "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1974&auto=format&fit=crop", # tecnologia futurista
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop", # natureza minimalista
+    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop", # arte abstrata
+    "https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?q=80&w=1935&auto=format&fit=crop", # conceito premium
+    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=2070&auto=format&fit=crop"  # design criativo
+]
+
 # Funções para geração da galáxia de conceitos
-def generate_visual_metaphors(keywords: List[str], attributes: List[str]) -> List[str]:
+def generate_visual_metaphors(keywords: List[str], attributes: List[str], demo_mode: bool = True) -> List[Dict[str, str]]:
     """Gera metáforas visuais usando os keywords e atributos"""
     metaphors = []
     
-    # Combinar keywords e attributes para criar metáforas criativas
+    if demo_mode and PRE_GENERATED_METAPHOR_IMAGES:
+        # Modo demonstração: usa URLs pré-geradas para velocidade máxima
+        pre_generated_metaphors = [
+            {"prompt": f"uma folha de {keywords[0] if keywords else 'café'} brotando de circuitos tecnológicos", "image_url": PRE_GENERATED_METAPHOR_IMAGES[0]},
+            {"prompt": f"{keywords[0] if keywords else 'natureza'} em geometria minimalista com elementos holográficos", "image_url": PRE_GENERATED_METAPHOR_IMAGES[1]},
+            {"prompt": f"{keywords[1] if len(keywords) > 1 else 'conceito'} dourado em superfície de mármore negro", "image_url": PRE_GENERATED_METAPHOR_IMAGES[2]},
+            {"prompt": f"elementos de {', '.join(keywords[:2])} explodindo em caleidoscópio de cores", "image_url": PRE_GENERATED_METAPHOR_IMAGES[3]},
+            {"prompt": f"fusão orgânica de {keywords[0] if keywords else 'identidade'} com natureza", "image_url": PRE_GENERATED_METAPHOR_IMAGES[4]},
+            {"prompt": f"conceito de {keywords[0] if keywords else 'marca'} em splash de tinta aquarela", "image_url": PRE_GENERATED_METAPHOR_IMAGES[5]}
+        ]
+        return pre_generated_metaphors[:6]
+    
+    # Modo produção: gera metáforas textuais (para APIs de imagem reais)
     for keyword in keywords[:3]:  # Limitar para não sobrecarregar
         for attribute in attributes[:2]:
             if attribute in ["sustentável", "ecológico", "natural"]:
-                metaphor = f"uma folha de {keyword} brotando de circuitos tecnológicos"
+                prompt = f"uma folha de {keyword} brotando de circuitos tecnológicos"
             elif attribute in ["moderno", "futurista", "tecnológico"]:
-                metaphor = f"{keyword} em geometria minimalista com elementos holográficos"
+                prompt = f"{keyword} em geometria minimalista com elementos holográficos"
             elif attribute in ["premium", "luxuoso"]:
-                metaphor = f"{keyword} dourado em superfície de mármore negro"
+                prompt = f"{keyword} dourado em superfície de mármore negro"
             elif attribute in ["vibrante", "colorido"]:
-                metaphor = f"{keyword} explodindo em caleidoscópio de cores"
+                prompt = f"{keyword} explodindo em caleidoscópio de cores"
             elif attribute in ["jovem", "familiar"]:
-                metaphor = f"{keyword} em ilustração playful com formas orgânicas"
+                prompt = f"{keyword} em ilustração playful com formas orgânicas"
             else:
-                metaphor = f"{keyword} {attribute} em composição artística abstrata"
+                prompt = f"{keyword} {attribute} em composição artística abstrata"
             
-            metaphors.append(metaphor)
+            metaphors.append({"prompt": prompt, "image_url": ""})
     
     # Adicionar algumas metáforas genéricas criativas
     metaphors.extend([
-        f"conceito de {keywords[0] if keywords else 'marca'} em splash de tinta aquarela",
-        f"elementos de {', '.join(keywords[:2])} em mosaico geométrico",
-        f"fusão orgânica de {keywords[0] if keywords else 'identidade'} com natureza"
+        {"prompt": f"conceito de {keywords[0] if keywords else 'marca'} em splash de tinta aquarela", "image_url": ""},
+        {"prompt": f"elementos de {', '.join(keywords[:2])} em mosaico geométrico", "image_url": ""},
+        {"prompt": f"fusão orgânica de {keywords[0] if keywords else 'identidade'} com natureza", "image_url": ""}
     ])
     
     return metaphors[:6]  # Limitar a 6 metáforas
@@ -439,6 +465,7 @@ class GalaxyGenerationRequest(BaseModel):
     attributes: List[str]
     brief_id: Optional[str] = None
     project_id: Optional[str] = None
+    demo_mode: Optional[bool] = True
 
 class BlendConceptsRequest(BaseModel):
     image_urls: List[str]
@@ -621,8 +648,8 @@ async def generate_galaxy(request: GalaxyGenerationRequest):
         if not request.keywords and not request.attributes:
             raise HTTPException(status_code=400, detail="Keywords ou attributes são necessários")
         
-        # 1. Gerar metáforas visuais
-        metaphors = generate_visual_metaphors(request.keywords, request.attributes)
+        # 1. Gerar metáforas visuais (com modo demo para hackathon)
+        metaphors = generate_visual_metaphors(request.keywords, request.attributes, request.demo_mode)
         
         # 2. Gerar paletas de cores
         color_palettes = generate_color_palettes(request.attributes)

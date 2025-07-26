@@ -153,10 +153,17 @@ export default function BrandKitPage() {
   const downloadBrandKit = async () => {
     setIsDownloading(true);
     
-    // Simular processamento
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Simular processamento com feedback visual
+    await new Promise(resolve => setTimeout(resolve, 1500));
     
-    alert('Kit de marca baixado com sucesso! (Simulação)');
+    // Criar um elemento para demonstrar o download
+    const link = document.createElement('a');
+    link.href = 'data:text/plain;charset=utf-8,Kit de Marca - ' + brandName + '\n\nEste é um exemplo do kit completo que seria gerado.\n\nIncluído:\n- Paleta de cores\n- Tipografia\n- Diretrizes de uso\n- Elementos visuais\n- Mockups de aplicação';
+    link.download = `${brandName.replace(/\s+/g, '_')}_Brand_Kit.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
     setIsDownloading(false);
   };
 
@@ -201,10 +208,13 @@ export default function BrandKitPage() {
               <Button 
                 onClick={downloadBrandKit}
                 disabled={isDownloading}
-                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 relative"
               >
                 <Download className="h-4 w-4 mr-2" />
-                {isDownloading ? 'Baixando...' : 'Baixar Kit'}
+                {isDownloading ? 'Preparando Download...' : 'Baixar Kit Completo'}
+                {!isDownloading && (
+                  <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+                )}
               </Button>
             </div>
           </div>

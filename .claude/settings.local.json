@@ -3,7 +3,8 @@
     "allow": [
       "Bash(python:*)",
       "Bash(pip install:*)",
-      "Bash(git init:*)"
+      "Bash(git init:*)",
+      "Bash(npm:*)"
     ],
     "deny": []
   }
