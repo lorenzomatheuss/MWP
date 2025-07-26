@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client, Client
 from dotenv import load_dotenv
-from transformers import pipeline
+# from transformers import pipeline  # Removido para deploy leve
 import yake
 import re
 import requests
@@ -42,9 +42,9 @@ url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_ANON_KEY")
 supabase: Client = create_client(url, key)
 
-# Carregar modelos de IA aprimorados
+# Carregar modelos de IA otimizados para deploy
 try:
-    # Usar YAKE para extração de palavras-chave (mais específico para keywords)
+    # Usar YAKE para extração de palavras-chave (leve e eficaz)
     keyword_extractor = yake.KeywordExtractor(
         lan="pt",  # português
         n=3,       # até 3 palavras por keyword
@@ -52,17 +52,11 @@ try:
         top=10
     )
     
-    # Modelo para classificação de atributos de marca
-    brand_attributes_classifier = pipeline(
-        "zero-shot-classification", 
-        model="facebook/bart-large-mnli"
-    )
+    # Fallback simples para classificação de atributos (modo demo)
+    brand_attributes_classifier = None  # Usar lógica baseada em keywords
     
-    # Modelo para análise de sentimentos
-    sentiment_analyzer = pipeline(
-        "sentiment-analysis", 
-        model="cardiffnlp/twitter-roberta-base-sentiment-latest"
-    )
+    # Fallback simples para análise de sentimentos
+    sentiment_analyzer = None  # Usar análise baseada em palavras-chave
     
 except Exception as e:
     print(f"Erro ao carregar modelos: {e}")
@@ -1239,28 +1233,37 @@ async def analyze_brief(request: BriefRequest):
             "inovador", "tradicional", "artesanal", "tecnológico"
         ]
         
+        # Lógica simplificada baseada em keywords para deploy leve
         attributes = []
-        if brand_attributes_classifier:
-            attributes_result = brand_attributes_classifier(
-                request.text, 
-                candidate_labels, 
-                multi_label=True
-            )
-            # Filtrar atributos com score alto
-            attributes = [
-                label for label, score in 
-                zip(attributes_result['labels'], attributes_result['scores']) 
-                if score > 0.4
-            ][:6]  # Top 6 atributos
+        text_lower = request.text.lower()
+        for label in candidate_labels:
+            if any(keyword.lower() in text_lower for keyword in [label]):
+                attributes.append(label)
+        
+        # Se não encontrar nada, usar atributos padrão baseados em palavras
+        if not attributes:
+            if any(word in text_lower for word in ['sustentável', 'ecológico', 'verde']):
+                attributes.extend(['sustentável', 'ecológico'])
+            if any(word in text_lower for word in ['moderno', 'tecnológico', 'inovador']):
+                attributes.extend(['moderno', 'tecnológico'])
+            if any(word in text_lower for word in ['jovem', 'dinâmico']):
+                attributes.extend(['jovem', 'vibrante'])
+        
+        attributes = list(set(attributes))[:6]  # Remove duplicatas e limita a 6
 
-        # 3. Análise de sentimento para contexto adicional
+        # 3. Análise de sentimento simplificada para deploy leve
         sentiment = "neutral"
-        if sentiment_analyzer:
-            try:
-                sentiment_result = sentiment_analyzer(request.text[:512])  # Limitar tamanho
-                sentiment = sentiment_result[0]['label'].lower()
-            except:
-                sentiment = "neutral"
+        positive_words = ['excelente', 'ótimo', 'bom', 'positivo', 'feliz', 'amor', 'sucesso']
+        negative_words = ['ruim', 'problema', 'negativo', 'difícil', 'triste', 'falha']
+        
+        text_lower = request.text.lower()
+        positive_count = sum(1 for word in positive_words if word in text_lower)
+        negative_count = sum(1 for word in negative_words if word in text_lower)
+        
+        if positive_count > negative_count:
+            sentiment = "positive"
+        elif negative_count > positive_count:
+            sentiment = "negative"
 
         # 4. Salvar no banco de dados se project_id for fornecido
         brief_id = None

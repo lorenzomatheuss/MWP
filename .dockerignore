@@ -1,0 +1,53 @@
+# Git
+.git
+.gitignore
+
+# Environment files
+.env*
+!.env.example
+
+# Node modules and build files
+frontend/node_modules
+frontend/.next
+frontend/out
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# Documentation
+README.md
+*.md
+!requirements.txt
+
+# Scripts
+*.bat
+*.sh
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
