@@ -13,23 +13,35 @@ Sistema completo que implementa um **fluxo co-criativo revolucionário** entre h
 
 ```
 MWP/
-├── main.py                 # Backend FastAPI com URLs pré-geradas para hackathon
-├── requirements.txt        # Dependências Python (inclui PIL, numpy)
-├── database_schema.sql     # Schema completo do banco
+├── main.py                 # Backend FastAPI com processamento de imagens PIL/Pillow
+├── requirements.txt        # Dependências Python (FastAPI, transformers, PIL, etc.)
+├── database_schema.sql     # Schema completo do banco Supabase
 ├── demo_script.md          # 🎪 ROTEIRO COMPLETO PARA PITCH DE 3 MINUTOS
-├── .env                   # Variáveis de ambiente
-├── frontend/              # Aplicação Next.js
+├── exemplos_briefings.md   # Exemplos de briefings para teste
+├── git-commands.txt        # Comandos Git úteis
+├── atualizar.bat          # Script de atualização automática
+├── deploy.bat             # Script de deploy
+├── push.bat               # Script de push para Git
+├── frontend/              # Aplicação Next.js 14 com TypeScript
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── page.tsx          # Fase 1: Onboarding Semântico
-│   │   │   ├── galaxy/page.tsx   # Fase 2: Galáxia de Conceitos
-│   │   │   ├── curation/page.tsx # Fase 3: Tela de Curadoria
+│   │   │   ├── page.tsx          # Fase 1: Onboarding Semântico + Upload de Documentos
+│   │   │   ├── galaxy/page.tsx   # Fase 2: Galáxia de Conceitos (React Flow)
+│   │   │   ├── curation/page.tsx # Fase 3: Tela de Curadoria (Drag & Drop)
 │   │   │   ├── brand-kit/page.tsx # Fase 4: Kit de Marca Final
 │   │   │   ├── layout.tsx        # Layout da aplicação
-│   │   │   └── globals.css
+│   │   │   └── globals.css       # Estilos globais Tailwind
 │   │   ├── components/ui/        # Componentes Shadcn UI
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── input.tsx
+│   │   │   └── textarea.tsx
 │   │   └── lib/
-│   └── package.json             # Inclui react-flow, dnd-kit
+│   │       └── utils.ts
+│   ├── package.json             # Next.js 14, React Flow, DND Kit, Supabase
+│   ├── next.config.js
+│   ├── tailwind.config.js
+│   └── tsconfig.json
 └── README.md
 ```
 
@@ -155,63 +167,72 @@ O arquivo `database_schema.sql` contém o schema completo com índices e trigger
 
 ### 🎯 Fase 1: Onboarding Semântico (Pensamento Analítico)
 - ✅ **Sistema de Projetos**: Criação e gerenciamento de projetos
-- ✅ **Análise Avançada de IA**: Extração de palavras-chave usando YAKE
+- ✅ **Upload de Documentos**: Suporte para PDF, DOCX e análise automática
+- ✅ **Análise Estratégica**: Extração inteligente de seções (company_info, values, target_audience, etc.)
+- ✅ **Análise Avançada de IA**: Extração de palavras-chave usando YAKE + transformers
 - ✅ **Classificação de Atributos**: 24+ atributos de marca categorizados
 - ✅ **Tags Editáveis**: Sistema completo para editar/adicionar/remover tags
 - ✅ **Persistência de Dados**: Salvamento automático no Supabase
-- ✅ **Análise de Sentimento**: Contexto adicional sobre o briefing
-- ✅ **Interface Moderna**: UI responsiva com Tailwind CSS
+- ✅ **Análise de Sentimento**: Contexto adicional sobre o briefing via RoBERTa
+- ✅ **Interface Moderna**: UI responsiva com Tailwind CSS e componentes Shadcn
 
 ### 🌌 Fase 2: Galáxia de Conceitos (Pensamento Divergente)
 - ✅ **URLs Pré-Geradas**: Imagens reais do Unsplash para demonstração instantânea
 - ✅ **Metáforas Visuais com Imagens**: Conceitos criativos + visualização real
 - ✅ **Paletas de Cores Inteligentes**: Baseadas nos atributos de marca  
 - ✅ **Pares Tipográficos**: Sugestões de fontes para títulos e corpo
-- ✅ **Canvas Interativo**: Interface estilo Miro com zoom e arrastar
+- ✅ **Canvas Interativo React Flow**: Interface estilo Miro com zoom, arrastar e navegação
+- ✅ **Nós Customizados**: Tipos específicos para metáforas, cores e tipografia
 - ✅ **Modo Demo**: `demo_mode: true` para hackathon - velocidade máxima
 
 ### 🎨 Fase 3: Tela de Curadoria - **"FATOR UAU"** 🌟
-- ✅ **Canvas de Curadoria**: Drag-and-drop suave para organizar elementos
-- ✅ **Blend Instantâneo**: PIL/Pillow local = < 1 segundo por blend
+- ✅ **Canvas de Curadoria**: Drag-and-drop suave com DND Kit para organizar elementos
+- ✅ **Blend Instantâneo**: PIL/Pillow local = < 1 segundo por blend (overlay, multiply, screen)
 - ✅ **Prompt Dinâmico**: Atualização em tempo real conforme seleção
 - ✅ **Assets Pré-Carregados**: 7 elementos visuais prontos para demo
-- ✅ **Aplicação de Estilos**: Paletas aplicadas instantaneamente
+- ✅ **Aplicação de Estilos**: Paletas aplicadas instantaneamente às imagens
+- ✅ **Seleção Múltipla**: Interface para selecionar múltiplos assets
 - ✅ **Diálogo Humano-IA**: Verdadeira co-criação, não apenas automação
 
 ### 📦 Fase 4: Kit de Marca Final (Entrega Profissional)
 - ✅ **Kit Profissional Instant**: Compilação automática em < 3 segundos
 - ✅ **Download Funcional**: Arquivo real baixado (.txt com estrutura completa)
-- ✅ **Interface Tabbed**: Visão Geral / Diretrizes / Aplicações
-- ✅ **Diretrizes Automáticas**: Guidelines geradas com base nos assets
+- ✅ **Interface Tabbed**: Visão Geral / Diretrizes / Aplicações organizadas
+- ✅ **Diretrizes Automáticas**: Guidelines geradas com base nos assets curados
 - ✅ **Paleta com Códigos**: Hex codes + instruções de uso profissionais
+- ✅ **Preview Interativo**: Visualização completa antes do download
 - ✅ **Resultado Tangível**: Saída pronta para cliente real
 
 ### 🔧 Otimizações para Hackathon
-- **Velocidade Garantida**: URLs pré-geradas + processamento local
-- **Demo-Proof**: Funciona offline, sem dependência de APIs externas
-- **Fluxo Perfeito**: Transições suaves entre todas as 4 fases
-- **Estado Persistente**: Parâmetros transferidos via URL
+- **Velocidade Garantida**: URLs pré-geradas do Unsplash + processamento PIL local
+- **Demo-Proof**: Funciona offline, sem dependência de APIs externas críticas
+- **Fluxo Perfeito**: Transições suaves entre todas as 4 fases via URL params
+- **Estado Persistente**: Parâmetros transferidos via searchParams do Next.js
 - **Fallbacks Inteligentes**: Sistema nunca falha durante demonstração
 - **Assets Pré-Carregados**: 10 URLs do Unsplash + 7 elementos de curadoria
+- **Scripts de Automação**: batch files para deploy rápido e push automatizado
 
 ## Tecnologias Utilizadas
 
 ### Backend
-- **FastAPI**: Framework web moderno e rápido
-- **Transformers**: Biblioteca para modelos de IA/NLP (YAKE, RoBERTa)
-- **PIL/Pillow**: Processamento e manipulação de imagens
-- **NumPy**: Computação científica para processamento
-- **Supabase**: Banco de dados PostgreSQL e APIs
-- **Python-dotenv**: Gerenciamento de variáveis de ambiente
+- **FastAPI 0.104.1**: Framework web moderno e rápido para APIs RESTful
+- **Transformers 4.35.2**: Biblioteca para modelos de IA/NLP (YAKE, RoBERTa)
+- **PIL/Pillow 10.1.0**: Processamento e manipulação de imagens (blend modes, filtros)
+- **NumPy 1.24.3**: Computação científica para processamento de arrays
+- **Supabase 2.1.0**: Banco de dados PostgreSQL e APIs em tempo real
+- **YAKE 0.4.8**: Extração de palavras-chave sem supervisão
+- **PyTorch 2.1.1**: Framework de deep learning para modelos de transformers
+- **Python-docx & PyPDF2**: Processamento de documentos DOCX e PDF
 
 ### Frontend
-- **Next.js 14**: Framework React com App Router
-- **TypeScript**: Tipagem estática para maior robustez
-- **Tailwind CSS**: Framework de CSS utilitário
-- **Shadcn UI**: Componentes de interface modernos
-- **React Flow**: Canvas interativo para Fase 2
-- **DND Kit**: Sistema de drag-and-drop para Fase 3
-- **Lucide React**: Ícones consistentes e modernos
+- **Next.js 14.0.3**: Framework React com App Router e TypeScript
+- **TypeScript**: Tipagem estática para maior robustez e produtividade
+- **Tailwind CSS 3.3.0**: Framework de CSS utilitário responsivo
+- **Shadcn UI**: Componentes de interface modernos baseados em Radix UI
+- **React Flow 11.10.4**: Canvas interativo para Fase 2 (Galáxia)
+- **DND Kit 6.0.8**: Sistema de drag-and-drop para Fase 3 (Curadoria)
+- **Lucide React 0.294.0**: Ícones consistentes e modernos
+- **Supabase JS 2.38.4**: Cliente JavaScript para integração com backend
 
 ## 📡 APIs Disponíveis - Endpoints Completos
 
@@ -227,7 +248,7 @@ Criar um novo projeto.
 ```
 
 #### POST /analyze-brief
-Analisa um briefing com IA e extrai keywords/attributes.
+Analisa um briefing com IA e extrai keywords/attributes usando YAKE + RoBERTa.
 ```json
 {
   "text": "Somos uma nova marca de café sustentável para a Geração Z...",
@@ -235,8 +256,17 @@ Analisa um briefing com IA e extrai keywords/attributes.
 }
 ```
 
+#### POST /upload-document
+Upload e análise automática de documentos PDF/DOCX.
+```json
+{
+  "file": "arquivo.pdf",
+  "project_id": "optional-project-uuid"
+}
+```
+
 #### PUT /update-brief
-Atualizar tags editadas pelo usuário.
+Atualizar tags editadas pelo usuário com persistência no Supabase.
 
 ### 🌌 Fase 2: Galáxia de Conceitos
 
@@ -259,7 +289,7 @@ Obter todos os assets gerados de um projeto.
 ### 🎨 Fase 3: Curadoria
 
 #### POST /blend-concepts
-Combina múltiplas imagens com diferentes blend modes.
+Combina múltiplas imagens com diferentes blend modes usando PIL/Pillow.
 ```json
 {
   "image_urls": ["url1", "url2"],
@@ -268,12 +298,13 @@ Combina múltiplas imagens com diferentes blend modes.
   "brief_id": "uuid"
 }
 ```
+**Processamento Local**: Retorna imagem base64 em < 1 segundo.
 
 #### POST /apply-style
-Aplica paletas de cores ou filtros a uma imagem.
+Aplica paletas de cores ou filtros a uma imagem com processamento instantâneo.
 ```json
 {
-  "image_url": "url-da-imagem",
+  "image_url": "url-da-imagem", 
   "style_data": {"colors": ["#FF6B9D", "#45B7D1"]},
   "style_type": "color_palette|filter|typography",
   "project_id": "uuid"
