@@ -31,7 +31,12 @@ app = FastAPI(title="Brand Co-Pilot API", version="1.0.0")
 # Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://127.0.0.1:3000",
+        "https://main--brand-copilot-frontend.netlify.app",
+        "https://brand-copilot-frontend.netlify.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
