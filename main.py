@@ -16,7 +16,7 @@ import colorsys
 import random
 import base64
 from io import BytesIO
-from PIL import Image, ImageFilter, ImageEnhance
+from PIL import Image, ImageFilter, ImageEnhance, ImageDraw, ImageFont
 import numpy as np
 import docx
 import PyPDF2
@@ -518,6 +518,53 @@ def image_to_base64(image: Image.Image) -> str:
     buffer.seek(0)
     return base64.b64encode(buffer.getvalue()).decode()
 
+def mock_logo_generation(text: str, palette: list) -> str:
+    """
+    Gera uma imagem de logótipo simulada usando Pillow e retorna uma string Base64.
+    """
+    # Cria uma imagem base com uma cor de fundo da paleta
+    bg_color = random.choice(palette)
+    image = Image.new('RGB', (512, 512), color=bg_color)
+    draw = ImageDraw.Draw(image)
+
+    # Desenha formas geométricas aleatórias com outras cores da paleta
+    for _ in range(random.randint(2, 4)):
+        fill_color = random.choice(palette)
+        # Evita que a forma tenha a mesma cor que o fundo
+        while fill_color == bg_color:
+            fill_color = random.choice(palette)
+
+        x1 = random.randint(50, 200)
+        y1 = random.randint(50, 200)
+        x2 = random.randint(300, 450)
+        y2 = random.randint(300, 450)
+
+        # Escolhe entre retângulo ou elipse
+        if random.random() > 0.5:
+            draw.rectangle([x1, y1, x2, y2], fill=fill_color)
+        else:
+            draw.ellipse([x1, y1, x2, y2], fill=fill_color)
+
+    # Adiciona o texto (iniciais ou uma palavra)
+    try:
+        # Tenta carregar uma fonte padrão (pode precisar de ajuste dependendo do ambiente)
+        font = ImageFont.truetype("arial.ttf", size=100)
+    except IOError:
+        font = ImageFont.load_default()
+
+    text_color = random.choice(palette)
+    while text_color == bg_color: # Garante o contraste
+        text_color = random.choice(palette)
+
+    draw.text((256, 256), text.upper(), font=font, anchor="mm", fill=text_color)
+
+    # Converte a imagem para Base64
+    buffered = BytesIO()
+    image.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+
+    return f"data:image/png;base64,{img_str}"
+
 async def save_curated_asset(project_id: str, brief_id: str, asset_data: Dict[str, Any], asset_type: str) -> str:
     """Salva um asset curado no banco de dados"""
     try:
@@ -857,13 +904,15 @@ def generate_visual_concept_data(
         
         color_palette = color_palettes[i % len(color_palettes)]
         
-        # Gerar URLs de logo fictícias (para demo)
-        logo_variations = [
-            f"https://via.placeholder.com/200x100/{''.join(color_palette[0].split('#'))}/FFFFFF?text=Logo+{i+1}+A",
-            f"https://via.placeholder.com/200x100/{''.join(color_palette[1].split('#'))}/FFFFFF?text=Logo+{i+1}+B",
-            f"https://via.placeholder.com/200x100/{''.join(color_palette[2].split('#'))}/000000?text=Logo+{i+1}+C",
-            f"https://via.placeholder.com/200x100/FFFFFF/{''.join(color_palette[0].split('#'))}?text=Logo+{i+1}+D"
-        ]
+        # Gerar logótipos usando mock logo generation
+        logo_variations = []
+        # Usar iniciais dos keywords para o texto do logótipo
+        logo_text = "".join(word[0] for word in keywords[:2]) if keywords else f"C{i+1}"
+
+        # Gerar 4 variações para cada conceito
+        for _ in range(4):
+            logo_b64 = mock_logo_generation(logo_text, color_palette)
+            logo_variations.append(logo_b64)
         
         # Gerar elementos gráficos (placeholders)
         graphic_elements = [
@@ -911,17 +960,13 @@ def generate_brand_kit_data(
 ) -> Dict[str, Any]:
     """Gera dados completos do kit de marca profissional"""
     
-    # URLs simuladas para demonstração
-    base_url = "https://example.com/assets"
-    
-    # Gerar assets package
+    # Substituir por dados reais do conceito selecionado
     assets_package = {
         "logos": [
-            {"format": "PNG", "url": f"{base_url}/{brand_name.lower()}_logo_main.png"},
-            {"format": "SVG", "url": f"{base_url}/{brand_name.lower()}_logo_main.svg"},
-            {"format": "PNG", "url": f"{base_url}/{brand_name.lower()}_logo_alt.png"},
-            {"format": "SVG", "url": f"{base_url}/{brand_name.lower()}_logo_alt.svg"},
-            {"format": "PDF", "url": f"{base_url}/{brand_name.lower()}_logo_vector.pdf"}
+            {"format": "PNG", "url": selected_concept['logo_variations'][0]},
+            {"format": "PNG", "url": selected_concept['logo_variations'][1]},
+            {"format": "PNG", "url": selected_concept['logo_variations'][2]},
+            {"format": "PNG", "url": selected_concept['logo_variations'][3]}
         ],
         "colors": [
             {"name": "Primary", "hex": selected_concept['color_palette'][0], "rgb": "RGB(45, 55, 72)"},
@@ -935,31 +980,37 @@ def generate_brand_kit_data(
             {"name": selected_concept['typography']['secondary'], "weights": ["Regular", "Italic", "Bold"]}
         ],
         "mockups": [
-            {"type": "Business Card", "url": f"{base_url}/{brand_name.lower()}_business_card.png"},
-            {"type": "Letterhead", "url": f"{base_url}/{brand_name.lower()}_letterhead.png"},
-            {"type": "Social Media Profile", "url": f"{base_url}/{brand_name.lower()}_social.png"},
-            {"type": "Website Header", "url": f"{base_url}/{brand_name.lower()}_website.png"}
+            {"type": "Business Card", "url": f"https://via.placeholder.com/300x200/?text=Business+Card"},
+            {"type": "Website Header", "url": f"https://via.placeholder.com/400x150/?text=Website+Header"}
         ]
     }
-    
-    # Gerar páginas das guidelines
+
+    # Criar o conteúdo das diretrizes como um ficheiro de texto
+    guidelines_content = f"Brand Guidelines for {brand_name}\n\n"
+    guidelines_content += "--- Color Palette ---\n"
+    for color in assets_package['colors']:
+        guidelines_content += f"- {color['name']}: {color['hex']}\n"
+    guidelines_content += "\n--- Typography ---\n"
+    guidelines_content += f"- Title Font: {assets_package['fonts'][0]['name']}\n"
+    guidelines_content += f"- Body Font: {assets_package['fonts'][1]['name']}\n"
+
+    guidelines_b64 = base64.b64encode(guidelines_content.encode('utf-8')).decode()
+    guidelines_data_url = f"data:text/plain;charset=utf-8;base64,{guidelines_b64}"
+
+    # Gerar páginas das guidelines usando os logótipos gerados como previews
     guidelines_pages = {
-        "cover": f"{base_url}/{brand_name.lower()}_guidelines_cover.png",
-        "logo_usage": f"{base_url}/{brand_name.lower()}_guidelines_logo.png",
-        "color_palette": f"{base_url}/{brand_name.lower()}_guidelines_colors.png",
-        "typography": f"{base_url}/{brand_name.lower()}_guidelines_typography.png",
-        "applications": f"{base_url}/{brand_name.lower()}_guidelines_applications.png"
+        "cover": selected_concept['logo_variations'][0],
+        "logo_usage": selected_concept['logo_variations'][1],
+        "color_palette": "https://via.placeholder.com/150x200/?text=Colors",
+        "typography": "https://via.placeholder.com/150x200/?text=Fonts",
+        "applications": "https://via.placeholder.com/150x200/?text=Apps"
     }
-    
-    # URLs dos documentos principais
-    guidelines_pdf = f"{base_url}/{brand_name.lower()}_brand_guidelines.pdf"
-    presentation_deck = f"{base_url}/{brand_name.lower()}_presentation.pptx"
     
     brand_kit = {
         "brand_name": brand_name,
-        "guidelines_pdf": guidelines_pdf,
+        "guidelines_pdf": guidelines_data_url,
         "assets_package": assets_package,
-        "presentation_deck": presentation_deck,
+        "presentation_deck": "#",
         "guidelines_pages": guidelines_pages,
         "generation_metadata": {
             "generated_at": datetime.now().isoformat(),

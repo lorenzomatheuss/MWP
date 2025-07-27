@@ -9,37 +9,49 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 interface BrandKit {
   brand_name: string;
-  primary_logo?: string;
-  logo_variations: string[];
-  color_palette?: {
-    name: string;
-    colors: string[];
-    attribute_basis: string;
+  guidelines_pdf: string;
+  assets_package: {
+    logos: Array<{
+      format: string;
+      url: string;
+    }>;
+    colors: Array<{
+      name: string;
+      hex: string;
+      rgb: string;
+    }>;
+    fonts: Array<{
+      name: string;
+      weights: string[];
+    }>;
+    mockups: Array<{
+      type: string;
+      url: string;
+    }>;
   };
-  typography?: {
-    title_font: string;
-    body_font: string;
-    attribute_basis: string;
-  };
-  visual_elements: any[];
-  brand_guidelines: {
-    logo_usage: string[];
-    color_usage: string[];
-    typography_usage: string[];
-    visual_style: string[];
-  };
-  applications: {
-    business_card?: string;
-    letterhead?: string;
-    social_media: string[];
-    website_mockup?: string;
+  presentation_deck: string;
+  guidelines_pages: {
+    cover: string;
+    logo_usage: string;
+    color_palette: string;
+    typography: string;
+    applications: string;
   };
   generation_metadata?: {
-    project_id: string;
-    brief_id: string;
-    total_assets_used: number;
     generated_at: string;
-    preferences: any;
+    concept_used: string;
+    strategic_foundation: {
+      purpose: string;
+      values: string[];
+      personality: string[];
+    };
+    deliverables: {
+      guidelines_pages: number;
+      logo_variations: number;
+      color_palette_size: number;
+      font_pairs: number;
+      mockup_applications: number;
+    };
   };
 }
 
@@ -70,14 +82,27 @@ export default function BrandKitPage() {
   const generateBrandKit = async () => {
     setIsGenerating(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/finalize-brand-kit`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/generate-brand-kit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          project_id: projectId,
           brief_id: briefId,
-          curated_assets: curatedAssets,
+          project_id: projectId,
           brand_name: brandName,
+          selected_concept: {
+            id: 'concept_1',
+            logo_variations: [],
+            color_palette: ['#2F855A', '#68D391', '#C6F6D5', '#F0FFF4', '#1A202C'],
+            typography: {
+              primary: 'Montserrat',
+              secondary: 'Open Sans'
+            }
+          },
+          strategic_analysis: {
+            purpose: 'Desenvolver uma marca sustentável',
+            values: ['Sustentabilidade', 'Qualidade'],
+            personality_traits: ['Confiável', 'Inovador']
+          },
           kit_preferences: {
             style: 'professional',
             format: 'complete',
@@ -88,7 +113,7 @@ export default function BrandKitPage() {
 
       if (response.ok) {
         const result = await response.json();
-        setBrandKit(result.brand_kit);
+        setBrandKit(result);
       } else {
         throw new Error('Falha ao gerar kit de marca');
       }
@@ -99,42 +124,31 @@ export default function BrandKitPage() {
       // Kit de exemplo para demonstração
       setBrandKit({
         brand_name: brandName,
-        color_palette: {
-          name: 'Paleta Principal',
-          colors: ['#2F855A', '#68D391', '#C6F6D5', '#F0FFF4'],
-          attribute_basis: 'sustentável'
-        },
-        typography: {
-          title_font: 'Montserrat',
-          body_font: 'Open Sans',
-          attribute_basis: 'moderno'
-        },
-        visual_elements: curatedAssets,
-        logo_variations: [],
-        brand_guidelines: {
-          logo_usage: [
-            'Use o logo principal em fundos claros',
-            'Mantenha área de respiro mínima equivalente à altura da letra',
-            'Não distorça ou altere as proporções do logo'
+        guidelines_pdf: 'data:text/plain;charset=utf-8;base64,' + btoa(`Brand Guidelines for ${brandName}\n\n--- Color Palette ---\n- Primary: #2F855A\n- Secondary: #68D391\n\n--- Typography ---\n- Title Font: Montserrat\n- Body Font: Open Sans`),
+        assets_package: {
+          logos: [
+            { format: 'PNG', url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' },
+            { format: 'PNG', url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' }
           ],
-          color_usage: [
-            'Use a cor primária #2F855A para elementos principais',
-            'Cores secundárias para detalhes e backgrounds',
-            'Mantenha contraste adequado para legibilidade'
+          colors: [
+            { name: 'Primary', hex: '#2F855A', rgb: 'RGB(47, 133, 90)' },
+            { name: 'Secondary', hex: '#68D391', rgb: 'RGB(104, 211, 145)' }
           ],
-          typography_usage: [
-            'Use Montserrat para títulos e cabeçalhos',
-            'Use Open Sans para textos corridos e corpo',
-            'Mantenha hierarquia tipográfica consistente'
+          fonts: [
+            { name: 'Montserrat', weights: ['Regular', 'Medium', 'Bold'] },
+            { name: 'Open Sans', weights: ['Regular', 'Italic', 'Bold'] }
           ],
-          visual_style: [
-            'Mantenha consistência visual em todas as aplicações',
-            'Use elementos visuais de forma equilibrada',
-            'Respeite o espaçamento e respiração da marca'
+          mockups: [
+            { type: 'Business Card', url: 'https://via.placeholder.com/300x200/?text=Business+Card' }
           ]
         },
-        applications: {
-          social_media: [],
+        presentation_deck: '#',
+        guidelines_pages: {
+          cover: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+          logo_usage: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+          color_palette: 'https://via.placeholder.com/150x200/?text=Colors',
+          typography: 'https://via.placeholder.com/150x200/?text=Fonts',
+          applications: 'https://via.placeholder.com/150x200/?text=Apps'
         }
       });
     } finally {
@@ -149,21 +163,33 @@ export default function BrandKitPage() {
     }
   }, [projectId, briefId, brandName]);
 
-  // Simular download do kit
   const downloadBrandKit = async () => {
+    if (!brandKit) return;
     setIsDownloading(true);
-    
-    // Simular processamento com feedback visual
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Criar um elemento para demonstrar o download
-    const link = document.createElement('a');
-    link.href = 'data:text/plain;charset=utf-8,Kit de Marca - ' + brandName + '\n\nEste é um exemplo do kit completo que seria gerado.\n\nIncluído:\n- Paleta de cores\n- Tipografia\n- Diretrizes de uso\n- Elementos visuais\n- Mockups de aplicação';
-    link.download = `${brandName.replace(/\s+/g, '_')}_Brand_Kit.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
+    await new Promise(resolve => setTimeout(resolve, 500)); // Pequeno atraso para feedback visual
+
+    // Função auxiliar de download
+    const downloadAsset = (url: string, filename: string) => {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    // Descarregar as diretrizes
+    if (brandKit.guidelines_pdf) {
+        downloadAsset(brandKit.guidelines_pdf, `${brandKit.brand_name}_Guidelines.txt`);
+    }
+
+    // Descarregar os logótipos
+    brandKit.assets_package.logos.forEach((logo, index) => {
+        if (logo.url.startsWith('data:image')) { // Descarregar apenas se for um logótipo gerado
+            downloadAsset(logo.url, `${brandKit.brand_name}_Logo_${index + 1}.${logo.format.toLowerCase()}`);
+        }
+    });
+
     setIsDownloading(false);
   };
 
@@ -260,37 +286,34 @@ export default function BrandKitPage() {
         {activeTab === 'overview' && brandKit && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Color Palette */}
-            {brandKit.color_palette && (
+            {brandKit.assets_package.colors && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Palette className="h-5 w-5 text-purple-600" />
                     Paleta de Cores
                   </CardTitle>
-                  <CardDescription>{brandKit.color_palette.name}</CardDescription>
+                  <CardDescription>Cores da marca</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-3">
-                    {brandKit.color_palette.colors.map((color, index) => (
+                    {brandKit.assets_package.colors.map((color, index) => (
                       <div key={index} className="text-center">
                         <div
                           className="w-full h-16 rounded-lg border shadow-sm mb-2"
-                          style={{ backgroundColor: color }}
+                          style={{ backgroundColor: color.hex }}
                         />
-                        <div className="text-xs font-mono text-gray-600">{color}</div>
+                        <div className="text-xs font-mono text-gray-600">{color.hex}</div>
+                        <div className="text-xs text-gray-500">{color.name}</div>
                       </div>
                     ))}
-                  </div>
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                    <div className="text-xs text-gray-600">Base:</div>
-                    <div className="font-medium">{brandKit.color_palette.attribute_basis}</div>
                   </div>
                 </CardContent>
               </Card>
             )}
 
             {/* Typography */}
-            {brandKit.typography && (
+            {brandKit.assets_package.fonts && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -300,74 +323,61 @@ export default function BrandKitPage() {
                   <CardDescription>Hierarquia tipográfica</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Títulos e Cabeçalhos</div>
-                    <div 
-                      className="text-xl font-bold"
-                      style={{ fontFamily: brandKit.typography.title_font }}
-                    >
-                      {brandKit.typography.title_font}
+                  {brandKit.assets_package.fonts.map((font, index) => (
+                    <div key={index}>
+                      <div className="text-sm text-gray-600 mb-1">
+                        {index === 0 ? 'Títulos e Cabeçalhos' : 'Corpo e Parágrafos'}
+                      </div>
+                      <div 
+                        className="text-xl font-bold"
+                        style={{ fontFamily: font.name }}
+                      >
+                        {font.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Pesos: {font.weights.join(', ')}
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500">
-                      The quick brown fox jumps
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Corpo e Parágrafos</div>
-                    <div 
-                      className="text-base"
-                      style={{ fontFamily: brandKit.typography.body_font }}
-                    >
-                      {brandKit.typography.body_font}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      The quick brown fox jumps over the lazy dog
-                    </div>
-                  </div>
-                  
-                  <div className="pt-2 border-t">
-                    <div className="text-xs text-gray-600">Estilo:</div>
-                    <div className="text-sm font-medium">{brandKit.typography.attribute_basis}</div>
-                  </div>
+                  ))}
                 </CardContent>
               </Card>
             )}
 
-            {/* Visual Elements */}
+            {/* Logos */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Image className="h-5 w-5 text-blue-600" />
-                  Elementos Visuais
+                  Logótipos
                 </CardTitle>
                 <CardDescription>
-                  {brandKit.visual_elements.length} elementos curados
+                  {brandKit.assets_package.logos.length} variações geradas
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {brandKit.visual_elements.length > 0 ? (
-                  <div className="space-y-3">
-                    {brandKit.visual_elements.slice(0, 3).map((element, index) => (
-                      <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm font-medium mb-1">
-                          Elemento {index + 1}
-                        </div>
-                        <div className="text-xs text-gray-600">
-                          {element.description || element.metaphor || 'Elemento visual curado'}
-                        </div>
+                {brandKit.assets_package.logos.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    {brandKit.assets_package.logos.slice(0, 4).map((logo, index) => (
+                      <div key={index} className="text-center">
+                        {logo.url.startsWith('data:image') ? (
+                          <img
+                            src={logo.url}
+                            alt={`Logo ${index + 1}`}
+                            className="w-full h-16 object-contain border rounded-lg bg-white"
+                          />
+                        ) : (
+                          <div className="w-full h-16 border rounded-lg bg-gray-100 flex items-center justify-center">
+                            <span className="text-xs text-gray-500">Logo {index + 1}</span>
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-500 mt-1">{logo.format}</div>
                       </div>
                     ))}
-                    {brandKit.visual_elements.length > 3 && (
-                      <div className="text-center text-sm text-gray-500">
-                        +{brandKit.visual_elements.length - 3} mais elementos
-                      </div>
-                    )}
                   </div>
                 ) : (
                   <div className="text-center text-gray-400 py-8">
                     <Image className="h-12 w-12 mx-auto mb-2" />
-                    <p className="text-sm">Nenhum elemento visual</p>
+                    <p className="text-sm">Nenhum logótipo gerado</p>
                   </div>
                 )}
               </CardContent>
@@ -377,70 +387,30 @@ export default function BrandKitPage() {
 
         {/* Guidelines Tab */}
         {activeTab === 'guidelines' && brandKit && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Uso do Logo</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {brandKit.brand_guidelines.logo_usage.map((guideline, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
-                      <span className="text-sm">{guideline}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Uso de Cores</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {brandKit.brand_guidelines.color_usage.map((guideline, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0" />
-                      <span className="text-sm">{guideline}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Tipografia</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {brandKit.brand_guidelines.typography_usage.map((guideline, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
-                      <span className="text-sm">{guideline}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Estilo Visual</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {brandKit.brand_guidelines.visual_style.map((guideline, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0" />
-                      <span className="text-sm">{guideline}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Guidelines Preview Images */}
+            {Object.entries(brandKit.guidelines_pages).map(([key, url]) => (
+              <Card key={key}>
+                <CardHeader>
+                  <CardTitle className="capitalize">
+                    {key.replace('_', ' ')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {url.startsWith('data:image') ? (
+                    <img
+                      src={url}
+                      alt={`${key} guideline`}
+                      className="w-full h-32 object-contain border rounded-lg bg-white"
+                    />
+                  ) : (
+                    <div className="w-full h-32 border rounded-lg bg-gray-100 flex items-center justify-center">
+                      <span className="text-sm text-gray-500">Guideline Preview</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
 
