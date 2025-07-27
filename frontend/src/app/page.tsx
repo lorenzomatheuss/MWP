@@ -117,6 +117,9 @@ export default function HomePage() {
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [currentBriefId, setCurrentBriefId] = useState<string | null>(null);
   
+  // Estados para conexão da API
+  const [apiHealth, setApiHealth] = useState<'checking' | 'healthy' | 'unhealthy'>('checking');
+
   // Estados para análise estratégica (Tela 2)
   const [strategicAnalysis, setStrategicAnalysis] = useState<StrategicAnalysis>({
     purpose: '',
@@ -145,8 +148,36 @@ export default function HomePage() {
   // Estado para user_id (simulado) - UUID válido para demo
   const [userId] = useState('550e8400-e29b-41d4-a716-446655440000');
 
+  // Função para testar saúde da API
+  const checkApiHealth = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        setApiHealth('unhealthy');
+        return;
+      }
+
+      const response = await fetch(`${apiUrl}/health`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        const health = await response.json();
+        console.log('API Health:', health);
+        setApiHealth('healthy');
+      } else {
+        setApiHealth('unhealthy');
+      }
+    } catch (error) {
+      console.error('Erro ao verificar saúde da API:', error);
+      setApiHealth('unhealthy');
+    }
+  };
+
   // Carregar projetos ao inicializar
   useEffect(() => {
+    checkApiHealth();
     loadProjects();
   }, []);
 
@@ -328,7 +359,20 @@ export default function HomePage() {
     setError(null);
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/strategic-analysis`, {
+      // Verificar se a URL da API está configurada
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        throw new Error('URL da API não configurada. Verifique a variável NEXT_PUBLIC_API_URL.');
+      }
+
+      console.log('Iniciando análise estratégica...', {
+        apiUrl,
+        briefId: currentBriefId,
+        projectId: selectedProject,
+        textLength: brief.length
+      });
+
+      const response = await fetch(`${apiUrl}/strategic-analysis`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -342,22 +386,53 @@ export default function HomePage() {
         }),
       });
 
+      console.log('Resposta recebida:', response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error('Falha na análise estratégica');
+        let errorMessage = 'Falha na análise estratégica';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorData.message || errorMessage;
+        } catch (e) {
+          // Se não conseguir parsear o erro, usar mensagem genérica baseada no status
+          if (response.status === 404) {
+            errorMessage = 'Endpoint de análise estratégica não encontrado';
+          } else if (response.status === 500) {
+            errorMessage = 'Erro interno do servidor na análise estratégica';
+          } else if (response.status === 403) {
+            errorMessage = 'Acesso negado ao servidor de análise';
+          } else {
+            errorMessage = `Erro HTTP ${response.status}: ${response.statusText}`;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       const analysis = await response.json();
+      console.log('Análise estratégica concluída:', analysis);
+      
+      // Validar se a resposta tem a estrutura esperada
+      if (!analysis.purpose && !analysis.values && !analysis.personality_traits) {
+        throw new Error('Resposta da análise estratégica inválida ou incompleta');
+      }
       
       setStrategicAnalysis({
-        purpose: analysis.purpose,
-        values: analysis.values,
-        personality_traits: analysis.personality_traits,
-        creative_tensions: analysis.creative_tensions,
+        purpose: analysis.purpose || 'Propósito não identificado automaticamente',
+        values: analysis.values || [],
+        personality_traits: analysis.personality_traits || [],
+        creative_tensions: analysis.creative_tensions || {
+          traditional_contemporary: 50,
+          corporate_creative: 50,
+          minimal_detailed: 50,
+          serious_playful: 50
+        },
         validated: false
       });
       
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro na análise estratégica');
+      console.error('Erro na análise estratégica:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido na análise estratégica';
+      setError(`${errorMessage}. Tente novamente ou verifique sua conexão.`);
     } finally {
       setIsAnalyzingStrategy(false);
     }
@@ -382,7 +457,18 @@ export default function HomePage() {
     setError(null);
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/generate-visual-concepts`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        throw new Error('URL da API não configurada');
+      }
+
+      console.log('Gerando conceitos visuais...', {
+        briefId: currentBriefId,
+        projectId: selectedProject,
+        strategicAnalysis
+      });
+
+      const response = await fetch(`${apiUrl}/generate-visual-concepts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -394,23 +480,44 @@ export default function HomePage() {
           keywords,
           attributes,
           style_preferences: {
-            traditional_contemporary: strategicAnalysis.creative_tensions.traditional_contemporary,
-            corporate_creative: strategicAnalysis.creative_tensions.corporate_creative,
-            minimal_detailed: strategicAnalysis.creative_tensions.minimal_detailed,
-            serious_playful: strategicAnalysis.creative_tensions.serious_playful
+            traditional_contemporary: strategicAnalysis.creative_tensions?.traditional_contemporary || 50,
+            corporate_creative: strategicAnalysis.creative_tensions?.corporate_creative || 50,
+            minimal_detailed: strategicAnalysis.creative_tensions?.minimal_detailed || 50,
+            serious_playful: strategicAnalysis.creative_tensions?.serious_playful || 50
           }
         }),
       });
 
+      console.log('Resposta conceitos visuais:', response.status);
+
       if (!response.ok) {
-        throw new Error('Falha na geração dos conceitos visuais');
+        let errorMessage = 'Falha na geração dos conceitos visuais';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorData.message || errorMessage;
+        } catch (e) {
+          if (response.status === 404) {
+            errorMessage = 'Endpoint de conceitos visuais não encontrado';
+          } else if (response.status === 500) {
+            errorMessage = 'Erro interno do servidor na geração de conceitos';
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       const visuals = await response.json();
+      console.log('Conceitos visuais gerados:', visuals);
+      
+      if (!visuals || !visuals.concepts) {
+        throw new Error('Resposta de conceitos visuais inválida');
+      }
+      
       setGeneratedVisuals(visuals);
       
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro na geração de conceitos visuais');
+      console.error('Erro na geração de conceitos visuais:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Erro na geração de conceitos visuais';
+      setError(`${errorMessage}. Tente novamente.`);
     } finally {
       setIsGeneratingVisuals(false);
     }
@@ -1462,6 +1569,20 @@ export default function HomePage() {
       <div className="text-center px-4">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">5º Elemento</h1>
         <p className="text-muted-foreground text-sm sm:text-base">4 elementos criam a identidade. O 5º cria domínio de mercado.</p>
+        
+        {/* Indicador de status da API */}
+        <div className="flex items-center justify-center gap-2 mt-2">
+          <div className={`w-2 h-2 rounded-full ${
+            apiHealth === 'healthy' ? 'bg-green-500' : 
+            apiHealth === 'unhealthy' ? 'bg-red-500' : 
+            'bg-yellow-500'
+          }`} />
+          <span className="text-xs text-muted-foreground">
+            {apiHealth === 'healthy' ? 'Sistema Operacional' : 
+             apiHealth === 'unhealthy' ? 'Sistema Offline' : 
+             'Verificando Sistema...'}
+          </span>
+        </div>
       </div>
 
       {renderStepIndicator()}

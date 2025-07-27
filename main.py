@@ -36,7 +36,10 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "https://main--brand-copilot-frontend.netlify.app",
         "https://brand-copilot-frontend.netlify.app",
-        "https://5elemento.netlify.app"
+        "https://5elemento.netlify.app",
+        "https://*.netlify.app",
+        "https://netlify.app",
+        "*"  # Para garantir funcionamento no hackathon
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -598,126 +601,176 @@ def generate_brand_kit_components(curated_assets: List[Dict[str, Any]], brand_na
 def analyze_strategic_elements(text: str, keywords: List[str], attributes: List[str]) -> Dict[str, Any]:
     """Analisa elementos estratégicos do briefing"""
     
-    # Extrair propósito usando padrões
-    purpose_patterns = [
-        r'(nosso objetivo é|queremos|buscamos|pretendemos|o objetivo|nossa missão)',
-        r'(empresa.{0,50}(busca|quer|pretende|visa))',
-        r'(marca.{0,50}(representa|significa|busca))'
-    ]
-    
-    purpose = ""
-    for pattern in purpose_patterns:
-        matches = re.findall(pattern, text.lower())
-        if matches:
-            # Encontrar a frase completa
-            start_idx = text.lower().find(matches[0][0] if isinstance(matches[0], tuple) else matches[0])
-            if start_idx != -1:
-                # Pegar até o final da frase
-                end_idx = text.find('.', start_idx)
-                if end_idx == -1:
-                    end_idx = text.find('\n', start_idx)
-                if end_idx == -1:
-                    end_idx = start_idx + 200
-                purpose = text[start_idx:end_idx].strip()
-                break
-    
-    if not purpose:
-        # Fallback: usar primeiras frases com keywords relevantes
-        sentences = text.split('.')
-        for sentence in sentences:
-            if any(kw.lower() in sentence.lower() for kw in keywords[:3]):
-                purpose = sentence.strip()
-                break
-    
-    # Extrair valores baseado em keywords e padrões
-    value_keywords = [
-        'sustentabilidade', 'qualidade', 'inovação', 'excelência', 'transparência',
-        'responsabilidade', 'confiança', 'autenticidade', 'criatividade', 'paixão',
-        'compromisso', 'integridade', 'diversidade', 'inclusão', 'respeito'
-    ]
-    
-    values = []
-    for attr in attributes:
-        if attr.lower() in value_keywords:
-            values.append(attr.title())
-    
-    # Adicionar valores inferidos do texto
-    for value_kw in value_keywords:
-        if value_kw in text.lower() and value_kw.title() not in values:
-            values.append(value_kw.title())
-    
-    # Extrair traços de personalidade
-    personality_mapping = {
-        'moderno': ['Inovador', 'Contemporâneo', 'Dinâmico'],
-        'jovem': ['Energético', 'Descontraído', 'Vibrante'],
-        'premium': ['Sofisticado', 'Elegante', 'Exclusivo'],
-        'sustentável': ['Consciente', 'Responsável', 'Natural'],
-        'tradicional': ['Confiável', 'Sólido', 'Estabelecido'],
-        'criativo': ['Inspirador', 'Original', 'Artístico'],
-        'tecnológico': ['Eficiente', 'Preciso', 'Avançado']
-    }
-    
-    personality_traits = []
-    for attr in attributes:
-        if attr.lower() in personality_mapping:
-            personality_traits.extend(personality_mapping[attr.lower()])
-    
-    # Mapear tensões criativas baseado nos atributos
-    tensions = {
-        'traditional_contemporary': 50,
-        'corporate_creative': 50,
-        'minimal_detailed': 50,
-        'serious_playful': 50
-    }
-    
-    # Ajustar baseado nos atributos
-    traditional_score = 0
-    contemporary_score = 0
-    corporate_score = 0
-    creative_score = 0
-    minimal_score = 0
-    detailed_score = 0
-    serious_score = 0
-    playful_score = 0
-    
-    for attr in attributes:
-        attr_lower = attr.lower()
+    try:
+        # Validar inputs
+        if not text or not isinstance(text, str):
+            raise ValueError("Texto inválido para análise")
         
-        # Tradicional vs Contemporâneo
-        if attr_lower in ['tradicional', 'clássico', 'estabelecido']:
-            traditional_score += 20
-        elif attr_lower in ['moderno', 'contemporâneo', 'inovador', 'futurista']:
-            contemporary_score += 20
+        if not keywords:
+            keywords = []
+        if not attributes:
+            attributes = []
         
-        # Corporativo vs Criativo
-        if attr_lower in ['profissional', 'corporativo', 'formal']:
-            corporate_score += 20
-        elif attr_lower in ['criativo', 'artístico', 'inovador']:
-            creative_score += 20
+        # Extrair propósito usando padrões
+        purpose_patterns = [
+            r'(nosso objetivo é|queremos|buscamos|pretendemos|o objetivo|nossa missão)',
+            r'(empresa.{0,50}(busca|quer|pretende|visa))',
+            r'(marca.{0,50}(representa|significa|busca))'
+        ]
         
-        # Minimal vs Detalhado
-        if attr_lower in ['minimalista', 'simples', 'limpo']:
-            minimal_score += 20
-        elif attr_lower in ['detalhado', 'elaborado', 'complexo']:
-            detailed_score += 20
+        purpose = ""
+        for pattern in purpose_patterns:
+            try:
+                matches = re.findall(pattern, text.lower())
+                if matches:
+                    # Encontrar a frase completa
+                    start_idx = text.lower().find(matches[0][0] if isinstance(matches[0], tuple) else matches[0])
+                    if start_idx != -1:
+                        # Pegar até o final da frase
+                        end_idx = text.find('.', start_idx)
+                        if end_idx == -1:
+                            end_idx = text.find('\n', start_idx)
+                        if end_idx == -1:
+                            end_idx = start_idx + 200
+                        purpose = text[start_idx:end_idx].strip()
+                        break
+            except Exception as e:
+                print(f"Erro ao processar padrão de propósito: {e}")
+                continue
         
-        # Sério vs Descontraído
-        if attr_lower in ['sério', 'formal', 'profissional']:
-            serious_score += 20
-        elif attr_lower in ['jovem', 'descontraído', 'divertido', 'playful']:
-            playful_score += 20
-    
-    tensions['traditional_contemporary'] = max(0, min(100, 50 + contemporary_score - traditional_score))
-    tensions['corporate_creative'] = max(0, min(100, 50 + creative_score - corporate_score))
-    tensions['minimal_detailed'] = max(0, min(100, 50 + detailed_score - minimal_score))
-    tensions['serious_playful'] = max(0, min(100, 50 + playful_score - serious_score))
-    
-    return {
-        'purpose': purpose or f"Desenvolver uma marca {', '.join(attributes[:2])} que conecte com {', '.join(keywords[:2])}",
-        'values': values[:5],  # Máximo 5 valores
-        'personality_traits': list(set(personality_traits))[:6],  # Máximo 6 traços únicos
-        'creative_tensions': tensions
-    }
+        if not purpose:
+            # Fallback: usar primeiras frases com keywords relevantes
+            try:
+                sentences = text.split('.')
+                for sentence in sentences:
+                    if keywords and any(kw.lower() in sentence.lower() for kw in keywords[:3]):
+                        purpose = sentence.strip()
+                        break
+            except Exception as e:
+                print(f"Erro ao processar fallback de propósito: {e}")
+        
+        # Fallback final se ainda não tiver propósito
+        if not purpose:
+            purpose = f"Desenvolver uma marca {', '.join(attributes[:2]) if attributes else 'única'} que conecte com {', '.join(keywords[:2]) if keywords else 'o público-alvo'}"
+        
+        # Extrair valores baseado em keywords e padrões
+        value_keywords = [
+            'sustentabilidade', 'qualidade', 'inovação', 'excelência', 'transparência',
+            'responsabilidade', 'confiança', 'autenticidade', 'criatividade', 'paixão',
+            'compromisso', 'integridade', 'diversidade', 'inclusão', 'respeito'
+        ]
+        
+        values = []
+        try:
+            for attr in attributes:
+                if attr and attr.lower() in value_keywords:
+                    values.append(attr.title())
+            
+            # Adicionar valores inferidos do texto
+            for value_kw in value_keywords:
+                if value_kw in text.lower() and value_kw.title() not in values:
+                    values.append(value_kw.title())
+        except Exception as e:
+            print(f"Erro ao processar valores: {e}")
+            values = ['Qualidade', 'Inovação']  # Valores padrão
+        
+        # Extrair traços de personalidade
+        personality_mapping = {
+            'moderno': ['Inovador', 'Contemporâneo', 'Dinâmico'],
+            'jovem': ['Energético', 'Descontraído', 'Vibrante'],
+            'premium': ['Sofisticado', 'Elegante', 'Exclusivo'],
+            'sustentável': ['Consciente', 'Responsável', 'Natural'],
+            'tradicional': ['Confiável', 'Sólido', 'Estabelecido'],
+            'criativo': ['Inspirador', 'Original', 'Artístico'],
+            'tecnológico': ['Eficiente', 'Preciso', 'Avançado']
+        }
+        
+        personality_traits = []
+        try:
+            for attr in attributes:
+                if attr and attr.lower() in personality_mapping:
+                    personality_traits.extend(personality_mapping[attr.lower()])
+        except Exception as e:
+            print(f"Erro ao processar traços de personalidade: {e}")
+            personality_traits = ['Confiável', 'Inovador']  # Traços padrão
+        
+        # Mapear tensões criativas baseado nos atributos
+        tensions = {
+            'traditional_contemporary': 50,
+            'corporate_creative': 50,
+            'minimal_detailed': 50,
+            'serious_playful': 50
+        }
+        
+        try:
+            # Ajustar baseado nos atributos
+            traditional_score = 0
+            contemporary_score = 0
+            corporate_score = 0
+            creative_score = 0
+            minimal_score = 0
+            detailed_score = 0
+            serious_score = 0
+            playful_score = 0
+            
+            for attr in attributes:
+                if not attr:
+                    continue
+                attr_lower = attr.lower()
+                
+                # Tradicional vs Contemporâneo
+                if attr_lower in ['tradicional', 'clássico', 'estabelecido']:
+                    traditional_score += 20
+                elif attr_lower in ['moderno', 'contemporâneo', 'inovador', 'futurista']:
+                    contemporary_score += 20
+                
+                # Corporativo vs Criativo
+                if attr_lower in ['profissional', 'corporativo', 'formal']:
+                    corporate_score += 20
+                elif attr_lower in ['criativo', 'artístico', 'inovador']:
+                    creative_score += 20
+                
+                # Minimal vs Detalhado
+                if attr_lower in ['minimalista', 'simples', 'limpo']:
+                    minimal_score += 20
+                elif attr_lower in ['detalhado', 'elaborado', 'complexo']:
+                    detailed_score += 20
+                
+                # Sério vs Descontraído
+                if attr_lower in ['sério', 'formal', 'profissional']:
+                    serious_score += 20
+                elif attr_lower in ['jovem', 'descontraído', 'divertido', 'playful']:
+                    playful_score += 20
+            
+            tensions['traditional_contemporary'] = max(0, min(100, 50 + contemporary_score - traditional_score))
+            tensions['corporate_creative'] = max(0, min(100, 50 + creative_score - corporate_score))
+            tensions['minimal_detailed'] = max(0, min(100, 50 + detailed_score - minimal_score))
+            tensions['serious_playful'] = max(0, min(100, 50 + playful_score - serious_score))
+        except Exception as e:
+            print(f"Erro ao processar tensões criativas: {e}")
+            # Manter tensões padrão
+        
+        return {
+            'purpose': purpose or f"Desenvolver uma marca {', '.join(attributes[:2]) if attributes else 'única'} que conecte com {', '.join(keywords[:2]) if keywords else 'o público-alvo'}",
+            'values': values[:5],  # Máximo 5 valores
+            'personality_traits': list(set(personality_traits))[:6],  # Máximo 6 traços únicos
+            'creative_tensions': tensions
+        }
+        
+    except Exception as e:
+        print(f"Erro geral na análise estratégica: {e}")
+        # Retornar análise básica como fallback
+        return {
+            'purpose': f"Desenvolver uma marca {', '.join(attributes[:2]) if attributes else 'única'} que conecte com {', '.join(keywords[:2]) if keywords else 'o público-alvo'}",
+            'values': ['Qualidade', 'Inovação'],
+            'personality_traits': ['Confiável', 'Inovador'],
+            'creative_tensions': {
+                'traditional_contemporary': 50,
+                'corporate_creative': 50,
+                'minimal_detailed': 50,
+                'serious_playful': 50
+            }
+        }
 
 def generate_visual_concept_data(
     strategic_analysis: Dict[str, Any], 
@@ -1192,12 +1245,39 @@ async def strategic_analysis(request: StrategicAnalysisRequest):
     personalidade e mapeando tensões criativas
     """
     try:
+        # Validar dados de entrada
+        if not request.text or len(request.text.strip()) < 10:
+            raise HTTPException(
+                status_code=400, 
+                detail="Texto muito curto para análise estratégica. Mínimo de 10 caracteres necessários."
+            )
+        
+        if not request.brief_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Brief ID é obrigatório para análise estratégica."
+            )
+        
+        print(f"Iniciando análise estratégica para brief {request.brief_id}")
+        print(f"Texto: {len(request.text)} caracteres")
+        print(f"Keywords: {request.keywords}")
+        print(f"Attributes: {request.attributes}")
+        
         # Realizar análise estratégica
         strategic_data = analyze_strategic_elements(
             request.text, 
             request.keywords, 
             request.attributes
         )
+        
+        # Validar resultados da análise
+        if not strategic_data:
+            raise HTTPException(
+                status_code=500,
+                detail="Falha na geração da análise estratégica. Dados insuficientes."
+            )
+        
+        print(f"Análise estratégica concluída: {strategic_data}")
         
         # Salvar no banco de dados se project_id fornecido
         if request.project_id:
@@ -1209,15 +1289,25 @@ async def strategic_analysis(request: StrategicAnalysisRequest):
                     "created_at": datetime.now().isoformat()
                 }
                 
-                supabase.table("strategic_analyses").insert(analysis_data).execute()
+                result = supabase.table("strategic_analyses").insert(analysis_data).execute()
+                print(f"Análise salva no banco: {result.data}")
                 
             except Exception as db_error:
                 print(f"Erro ao salvar análise estratégica: {db_error}")
+                # Não falhar se não conseguir salvar, apenas logar
         
         return strategic_data
         
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro na análise estratégica: {str(e)}")
+        print(f"Erro inesperado na análise estratégica: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Erro interno na análise estratégica: {str(e)}"
+        )
 
 # Endpoint aprimorado para análise de briefing
 @app.post("/analyze-brief")
@@ -1617,6 +1707,7 @@ def read_root():
     return {
         "status": "Brand Co-Pilot API is running!",
         "version": "1.0.0",
+        "timestamp": datetime.now().isoformat(),
         "features": [
             "Semantic Onboarding (Phase 1)",
             "Galaxy of Concepts (Phase 2)", 
@@ -1635,3 +1726,39 @@ def read_root():
             "Final brand kit generation"
         ]
     }
+
+@app.get("/health")
+def health_check():
+    """Endpoint para verificar saúde da API"""
+    try:
+        # Testar conexão com Supabase
+        supabase_status = "ok"
+        try:
+            supabase.table("projects").select("count", count="exact").limit(1).execute()
+        except Exception as e:
+            supabase_status = f"error: {str(e)}"
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "services": {
+                "api": "ok",
+                "supabase": supabase_status,
+                "yake": "ok" if keyword_extractor else "unavailable"
+            },
+            "endpoints": [
+                "/analyze-brief",
+                "/strategic-analysis", 
+                "/generate-visual-concepts",
+                "/generate-galaxy",
+                "/blend-concepts",
+                "/apply-style",
+                "/generate-brand-kit"
+            ]
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
