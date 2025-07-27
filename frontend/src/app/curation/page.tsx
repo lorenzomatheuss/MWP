@@ -288,33 +288,34 @@ export default function CurationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4">
+      <div className="bg-card border-b border-border p-4 sm:p-6">
         <div className="container mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Button variant="outline" size="sm" onClick={() => router.back()} className="flex-shrink-0">
+                <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Voltar</span>
+                <span className="sm:hidden">←</span>
               </Button>
-              <div>
-                <h1 className="text-2xl font-bold">Fase 3: Tela de Curadoria</h1>
-                <p className="text-gray-600">Combine e refine elementos para criar sua identidade visual</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Fase 3: Tela de Curadoria</h1>
+                <p className="text-muted-foreground text-sm hidden sm:block">Combine e refine elementos para criar sua identidade visual</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               <Input
                 placeholder="Nome da marca..."
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
-                className="w-48"
+                className="w-full sm:w-48 input-mobile"
               />
               <Button 
                 onClick={proceedToFinalKit}
                 disabled={curatedAssets.length === 0 || !brandName}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 button-mobile"
               >
                 Finalizar Kit →
               </Button>
@@ -323,9 +324,10 @@ export default function CurationPage() {
         </div>
       </div>
 
-      <div className="container mx-auto p-4 grid grid-cols-12 gap-4 h-[calc(100vh-120px)]">
-        {/* Sidebar - Elementos da Galáxia */}
-        <div className="col-span-3 space-y-4 overflow-y-auto">
+      <div className="container mx-auto p-4 sm:p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[calc(100vh-200px)] lg:h-[calc(100vh-140px)]">
+          {/* Sidebar - Elementos da Galáxia */}
+          <div className="lg:col-span-3 space-y-4 overflow-y-auto scrollbar-thin max-h-96 lg:max-h-none">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -427,11 +429,11 @@ export default function CurationPage() {
         </div>
 
         {/* Canvas de Curadoria */}
-        <div className="col-span-6">
-          <Card className="h-full">
+        <div className="lg:col-span-6 order-first lg:order-none">
+          <Card className="h-full min-h-[400px] lg:min-h-[600px]">
             <CardHeader>
-              <CardTitle>Canvas de Curadoria</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg sm:text-xl">Canvas de Curadoria</CardTitle>
+              <CardDescription className="text-sm">
                 Organize e combine elementos. Clique para selecionar múltiplos itens.
               </CardDescription>
             </CardHeader>
@@ -535,7 +537,7 @@ export default function CurationPage() {
         </div>
 
         {/* Painel de Prompt Dinâmico */}
-        <div className="col-span-3 space-y-4">
+        <div className="lg:col-span-3 space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Prompt Dinâmico</CardTitle>

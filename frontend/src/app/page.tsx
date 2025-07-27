@@ -518,24 +518,25 @@ export default function HomePage() {
     ];
 
     return (
-      <div className="flex justify-center mb-8">
-        <div className="flex items-center space-x-4">
+      <div className="flex justify-center mb-6 sm:mb-8 px-4">
+        <div className="flex items-center space-x-2 sm:space-x-4 overflow-x-auto pb-2">
           {steps.map((step, index) => (
-            <div key={step.number} className="flex items-center">
+            <div key={step.number} className="flex items-center flex-shrink-0">
               <div className={`
-                w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold
+                w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold
                 ${currentStep === step.number 
-                  ? 'bg-blue-600 text-white' 
+                  ? 'bg-primary text-primary-foreground' 
                   : step.completed 
                   ? 'bg-green-600 text-white' 
-                  : 'bg-gray-200 text-gray-600'
+                  : 'bg-muted text-muted-foreground'
                 }
               `}>
-                {step.completed ? <CheckCircle size={20} /> : step.number}
+                {step.completed ? <CheckCircle size={16} className="sm:w-5 sm:h-5" /> : step.number}
               </div>
-              <span className="ml-2 text-sm font-medium">{step.title}</span>
+              <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium hidden sm:inline">{step.title}</span>
+              <span className="ml-1 text-xs font-medium sm:hidden">{step.title.charAt(0)}</span>
               {index < steps.length - 1 && (
-                <ArrowRight className="ml-4 text-gray-400" size={16} />
+                <ArrowRight className="ml-2 sm:ml-4 text-muted-foreground flex-shrink-0" size={12} />
               )}
             </div>
           ))}
@@ -1457,15 +1458,15 @@ export default function HomePage() {
   );
 
   return (
-    <main className="container mx-auto p-8 space-y-8">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-2">5º Elemento</h1>
-        <p className="text-muted-foreground">Seu Co-Piloto de Branding Estratégico</p>
+    <main className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+      <div className="text-center px-4">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">5º Elemento</h1>
+        <p className="text-muted-foreground text-sm sm:text-base">Seu Co-Piloto de Branding Estratégico</p>
       </div>
 
       {renderStepIndicator()}
 
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto px-4 sm:px-0">
         {currentStep === 1 && renderStep1()}
         {currentStep === 2 && renderStep2()}
         {currentStep === 3 && renderStep3()}
@@ -1473,9 +1474,9 @@ export default function HomePage() {
       </div>
 
       {error && (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto px-4 sm:px-0">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-700">{error}</p>
+            <p className="text-red-700 text-sm sm:text-base">{error}</p>
             <Button 
               variant="outline" 
               size="sm" 

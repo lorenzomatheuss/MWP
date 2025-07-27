@@ -259,31 +259,34 @@ export default function GalaxyPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4">
+      <div className="bg-card border-b border-border p-4 sm:p-6">
         <div className="container mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => router.back()}
+                className="flex-shrink-0"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
+                <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Voltar</span>
+                <span className="sm:hidden">←</span>
               </Button>
-              <div>
-                <h1 className="text-2xl font-bold">Fase 2: Galáxia de Conceitos</h1>
-                <p className="text-gray-600">Explore e organize elementos visuais gerados pela IA</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold truncate">Fase 2: Galáxia de Conceitos</h1>
+                <p className="text-muted-foreground text-sm sm:text-base hidden sm:block">Explore e organize elementos visuais gerados pela IA</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               {!galaxyAssets && (
                 <Button 
                   onClick={generateGalaxy}
                   disabled={isLoading || (keywords.length === 0 && attributes.length === 0)}
+                  className="button-mobile"
                 >
                   {isLoading ? 'Gerando...' : 'Gerar Galáxia'}
                 </Button>
@@ -347,7 +350,7 @@ export default function GalaxyPage() {
       </div>
 
       {/* Main Canvas Area */}
-      <div className="h-[calc(100vh-120px)]">
+      <div className="h-[calc(100vh-140px)] sm:h-[calc(100vh-120px)]">
         {error && (
           <div className="p-4">
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">

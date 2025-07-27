@@ -180,28 +180,29 @@ export default function BrandKitPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4">
+      <div className="bg-card border-b border-border p-4 sm:p-6">
         <div className="container mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Button variant="outline" size="sm" onClick={() => router.back()} className="flex-shrink-0">
+                <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Voltar</span>
+                <span className="sm:hidden">←</span>
               </Button>
-              <div>
-                <h1 className="text-2xl font-bold">Fase 4: Kit de Marca Completo</h1>
-                <p className="text-gray-600">Seu kit de marca profissional está pronto</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Fase 4: Kit de Marca Completo</h1>
+                <p className="text-muted-foreground text-sm hidden sm:block">Seu kit de marca profissional está pronto</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
+            <div className="flex flex-wrap items-center gap-2 justify-end">
+              <Button variant="outline" size="sm" className="hidden sm:flex">
                 <Eye className="h-4 w-4 mr-2" />
                 Pré-visualizar
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="hidden sm:flex">
                 <Share className="h-4 w-4 mr-2" />
                 Compartilhar
               </Button>
@@ -221,7 +222,7 @@ export default function BrandKitPage() {
         </div>
       </div>
 
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-4 sm:p-6">
         {/* Brand Header */}
         {brandKit && (
           <Card className="mb-6">
