@@ -35,7 +35,8 @@ app.add_middleware(
         "http://localhost:3000", 
         "http://127.0.0.1:3000",
         "https://main--brand-copilot-frontend.netlify.app",
-        "https://brand-copilot-frontend.netlify.app"
+        "https://brand-copilot-frontend.netlify.app",
+        "https://5elemento.netlify.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
