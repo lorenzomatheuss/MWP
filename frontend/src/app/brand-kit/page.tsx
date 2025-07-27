@@ -443,13 +443,16 @@ export default function BrandKitPage() {
                 <div>
                   <div className="text-gray-600">Assets Utilizados</div>
                   <div className="font-semibold">
-                    {brandKit.generation_metadata.total_assets_used}
+                    {brandKit.generation_metadata.deliverables.logo_variations +
+                     brandKit.generation_metadata.deliverables.color_palette_size +
+                     brandKit.generation_metadata.deliverables.font_pairs +
+                     brandKit.generation_metadata.deliverables.mockup_applications}
                   </div>
                 </div>
                 <div>
                   <div className="text-gray-600">Projeto ID</div>
                   <div className="font-mono text-xs">
-                    {brandKit.generation_metadata.project_id.slice(0, 8)}...
+                    {brandKit.id.slice(0, 8)}...
                   </div>
                 </div>
                 <div>
