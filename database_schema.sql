@@ -4,7 +4,7 @@
 -- Tabela para gerenciar projetos
 CREATE TABLE IF NOT EXISTS projects (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES auth.users(id),
+  user_id uuid NOT NULL, -- Removido REFERENCES para demo sem autenticação
   name TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL

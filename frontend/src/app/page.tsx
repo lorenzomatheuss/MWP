@@ -142,8 +142,8 @@ export default function HomePage() {
   const [isGeneratingKit, setIsGeneratingKit] = useState(false);
   const [brandName, setBrandName] = useState('');
   
-  // Estado para user_id (simulado)
-  const [userId] = useState('demo-user-123');
+  // Estado para user_id (simulado) - UUID válido para demo
+  const [userId] = useState('550e8400-e29b-41d4-a716-446655440000');
 
   // Carregar projetos ao inicializar
   useEffect(() => {
