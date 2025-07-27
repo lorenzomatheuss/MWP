@@ -70,7 +70,7 @@ export default function BrandKitPage() {
   const generateBrandKit = async () => {
     setIsGenerating(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/finalize-brand-kit', {
+      const response = await fetch('https://mwp-production-6b45.up.railway.app/finalize-brand-kit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

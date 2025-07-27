@@ -173,7 +173,7 @@ export default function GalaxyPage() {
     setError(null);
     
     try {
-      const response = await fetch('http://127.0.0.1:8000/generate-galaxy', {
+      const response = await fetch('https://mwp-production-6b45.up.railway.app/generate-galaxy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

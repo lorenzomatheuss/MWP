@@ -177,7 +177,7 @@ export default function HomePage() {
 
   const loadProjects = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/projects/${userId}`);
+      const response = await fetch(`https://mwp-production-6b45.up.railway.app/projects/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setProjects(data.projects);
@@ -192,7 +192,7 @@ export default function HomePage() {
     
     setIsCreatingProject(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/projects', {
+      const response = await fetch('https://mwp-production-6b45.up.railway.app/projects', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -254,7 +254,7 @@ export default function HomePage() {
       formData.append('file', selectedFile);
       if (selectedProject) formData.append('project_id', selectedProject);
       
-      const response = await fetch('http://127.0.0.1:8000/parse-document', {
+      const response = await fetch('https://mwp-production-6b45.up.railway.app/parse-document', {
         method: 'POST',
         body: formData
       });
@@ -293,7 +293,7 @@ export default function HomePage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://127.0.0.1:8000/analyze-brief', {
+      const response = await fetch('https://mwp-production-6b45.up.railway.app/analyze-brief', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -328,7 +328,7 @@ export default function HomePage() {
     setError(null);
     
     try {
-      const response = await fetch('http://127.0.0.1:8000/strategic-analysis', {
+      const response = await fetch('https://mwp-production-6b45.up.railway.app/strategic-analysis', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -382,7 +382,7 @@ export default function HomePage() {
     setError(null);
     
     try {
-      const response = await fetch('http://127.0.0.1:8000/generate-visual-concepts', {
+      const response = await fetch('https://mwp-production-6b45.up.railway.app/generate-visual-concepts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -438,7 +438,7 @@ export default function HomePage() {
     try {
       const selectedConceptData = generatedVisuals?.concepts.find(c => c.id === selectedConcept);
       
-      const response = await fetch('http://127.0.0.1:8000/generate-brand-kit', {
+      const response = await fetch('https://mwp-production-6b45.up.railway.app/generate-brand-kit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -179,7 +179,7 @@ export default function CurationPage() {
         asset.data.image_data || asset.data.image_url || `https://picsum.photos/512/512?random=${asset.id}`
       );
 
-      const response = await fetch('http://127.0.0.1:8000/blend-concepts', {
+      const response = await fetch('https://mwp-production-6b45.up.railway.app/blend-concepts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -243,7 +243,7 @@ export default function CurationPage() {
       
       const imageUrl = imageAsset.data.image_data || imageAsset.data.image_url || `https://picsum.photos/512/512?random=${imageAsset.id}`;
 
-      const response = await fetch('http://127.0.0.1:8000/apply-style', {
+      const response = await fetch('https://mwp-production-6b45.up.railway.app/apply-style', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
