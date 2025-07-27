@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Brand Co-Pilot',
-  description: 'AI-powered brand development platform',
+  title: '5º Elemento',
+  description: '4 elementos criam a identidade. O 5º cria domínio de mercado.',
 }
 
 export default function RootLayout({

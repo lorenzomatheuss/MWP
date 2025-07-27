@@ -571,7 +571,7 @@ export default function HomePage() {
               <select 
                 value={selectedProject || ''} 
                 onChange={(e) => setSelectedProject(e.target.value || null)}
-                className="w-full p-2 border rounded-md"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <option value="">Selecione um projeto...</option>
                 {projects.map((project) => (
@@ -1461,7 +1461,7 @@ export default function HomePage() {
     <main className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
       <div className="text-center px-4">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">5º Elemento</h1>
-        <p className="text-muted-foreground text-sm sm:text-base">Seu Co-Piloto de Branding Estratégico</p>
+        <p className="text-muted-foreground text-sm sm:text-base">4 elementos criam a identidade. O 5º cria domínio de mercado.</p>
       </div>
 
       {renderStepIndicator()}
