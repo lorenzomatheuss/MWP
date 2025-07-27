@@ -452,7 +452,7 @@ export default function BrandKitPage() {
                 <div>
                   <div className="text-gray-600">Projeto ID</div>
                   <div className="font-mono text-xs">
-                    {brandKit.id.slice(0, 8)}...
+                    {projectId?.slice(0, 8)}...
                   </div>
                 </div>
                 <div>
