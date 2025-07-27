@@ -651,7 +651,9 @@ def analyze_strategic_elements(text: str, keywords: List[str], attributes: List[
         
         # Fallback final se ainda não tiver propósito
         if not purpose:
-            purpose = f"Desenvolver uma marca {', '.join(attributes[:2]) if attributes else 'única'} que conecte com {', '.join(keywords[:2]) if keywords else 'o público-alvo'}"
+            safe_attributes_fallback = [str(attr) for attr in attributes[:2] if attr] if attributes else []
+            safe_keywords_fallback = [str(kw) for kw in keywords[:2] if kw] if keywords else []
+            purpose = f"Desenvolver uma marca {', '.join(safe_attributes_fallback) if safe_attributes_fallback else 'única'} que conecte com {', '.join(safe_keywords_fallback) if safe_keywords_fallback else 'o público-alvo'}"
         
         # Extrair valores baseado em keywords e padrões
         value_keywords = [
@@ -750,8 +752,14 @@ def analyze_strategic_elements(text: str, keywords: List[str], attributes: List[
             print(f"Erro ao processar tensões criativas: {e}")
             # Manter tensões padrão
         
+        # Garantir que attributes e keywords sejam strings
+        safe_attributes = [str(attr) for attr in attributes[:2] if attr] if attributes else []
+        safe_keywords = [str(kw) for kw in keywords[:2] if kw] if keywords else []
+        
+        fallback_purpose = f"Desenvolver uma marca {', '.join(safe_attributes) if safe_attributes else 'única'} que conecte com {', '.join(safe_keywords) if safe_keywords else 'o público-alvo'}"
+        
         return {
-            'purpose': purpose or f"Desenvolver uma marca {', '.join(attributes[:2]) if attributes else 'única'} que conecte com {', '.join(keywords[:2]) if keywords else 'o público-alvo'}",
+            'purpose': purpose or fallback_purpose,
             'values': values[:5],  # Máximo 5 valores
             'personality_traits': list(set(personality_traits))[:6],  # Máximo 6 traços únicos
             'creative_tensions': tensions
@@ -760,8 +768,11 @@ def analyze_strategic_elements(text: str, keywords: List[str], attributes: List[
     except Exception as e:
         print(f"Erro geral na análise estratégica: {e}")
         # Retornar análise básica como fallback
+        safe_attributes = [str(attr) for attr in attributes[:2] if attr] if attributes else []
+        safe_keywords = [str(kw) for kw in keywords[:2] if kw] if keywords else []
+        
         return {
-            'purpose': f"Desenvolver uma marca {', '.join(attributes[:2]) if attributes else 'única'} que conecte com {', '.join(keywords[:2]) if keywords else 'o público-alvo'}",
+            'purpose': f"Desenvolver uma marca {', '.join(safe_attributes) if safe_attributes else 'única'} que conecte com {', '.join(safe_keywords) if safe_keywords else 'o público-alvo'}",
             'values': ['Qualidade', 'Inovação'],
             'personality_traits': ['Confiável', 'Inovador'],
             'creative_tensions': {

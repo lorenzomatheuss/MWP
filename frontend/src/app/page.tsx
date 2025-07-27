@@ -340,8 +340,14 @@ export default function HomePage() {
       }
 
       const data: AnalysisResult = await response.json();
-      setKeywords(data.keywords);
-      setAttributes(data.attributes);
+      console.log('Dados da análise de brief:', data);
+      
+      // Garantir que keywords e attributes sejam arrays válidos
+      const validKeywords = Array.isArray(data.keywords) ? data.keywords.filter(k => typeof k === 'string') : [];
+      const validAttributes = Array.isArray(data.attributes) ? data.attributes.filter(a => typeof a === 'string') : [];
+      
+      setKeywords(validKeywords);
+      setAttributes(validAttributes);
       setCurrentBriefId(data.brief_id);
       setCurrentStep(2);
     } catch (err) {
@@ -369,7 +375,9 @@ export default function HomePage() {
         apiUrl,
         briefId: currentBriefId,
         projectId: selectedProject,
-        textLength: brief.length
+        textLength: brief.length,
+        keywords: keywords,
+        attributes: attributes
       });
 
       const response = await fetch(`${apiUrl}/strategic-analysis`, {
@@ -380,8 +388,8 @@ export default function HomePage() {
         body: JSON.stringify({
           brief_id: currentBriefId,
           text: brief,
-          keywords,
-          attributes,
+          keywords: Array.isArray(keywords) ? keywords : [],
+          attributes: Array.isArray(attributes) ? attributes : [],
           project_id: selectedProject
         }),
       });
@@ -392,8 +400,19 @@ export default function HomePage() {
         let errorMessage = 'Falha na análise estratégica';
         try {
           const errorData = await response.json();
-          errorMessage = errorData.detail || errorData.message || errorMessage;
-        } catch (e) {
+          console.log('Dados de erro da API:', errorData);
+          
+          if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail;
+          } else if (typeof errorData.message === 'string') {
+            errorMessage = errorData.message;
+          } else if (errorData.detail && typeof errorData.detail === 'object') {
+            errorMessage = 'Erro de validação nos dados enviados';
+          } else {
+            errorMessage = `Erro HTTP ${response.status}`;
+          }
+        } catch (parseError) {
+          console.log('Erro ao parsear resposta de erro:', parseError);
           // Se não conseguir parsear o erro, usar mensagem genérica baseada no status
           if (response.status === 404) {
             errorMessage = 'Endpoint de análise estratégica não encontrado';
@@ -411,27 +430,35 @@ export default function HomePage() {
       const analysis = await response.json();
       console.log('Análise estratégica concluída:', analysis);
       
-      // Validar se a resposta tem a estrutura esperada
-      if (!analysis.purpose && !analysis.values && !analysis.personality_traits) {
-        throw new Error('Resposta da análise estratégica inválida ou incompleta');
-      }
-      
-      setStrategicAnalysis({
+      // Validar e configurar dados da análise estratégica
+      const strategicData = {
         purpose: analysis.purpose || 'Propósito não identificado automaticamente',
-        values: analysis.values || [],
-        personality_traits: analysis.personality_traits || [],
-        creative_tensions: analysis.creative_tensions || {
+        values: Array.isArray(analysis.values) ? analysis.values : [],
+        personality_traits: Array.isArray(analysis.personality_traits) ? analysis.personality_traits : [],
+        creative_tensions: (analysis.creative_tensions && typeof analysis.creative_tensions === 'object') ? analysis.creative_tensions : {
           traditional_contemporary: 50,
           corporate_creative: 50,
           minimal_detailed: 50,
           serious_playful: 50
         },
         validated: false
-      });
+      };
+      
+      console.log('Dados estratégicos processados:', strategicData);
+      setStrategicAnalysis(strategicData);
       
     } catch (err) {
       console.error('Erro na análise estratégica:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido na análise estratégica';
+      let errorMessage = 'Erro desconhecido na análise estratégica';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      } else {
+        errorMessage = 'Erro na comunicação com o servidor';
+      }
+      
       setError(`${errorMessage}. Tente novamente ou verifique sua conexão.`);
     } finally {
       setIsAnalyzingStrategy(false);
@@ -440,11 +467,21 @@ export default function HomePage() {
 
   // Função para validar análise estratégica
   const validateStrategicAnalysis = () => {
-    if (!strategicAnalysis.purpose || strategicAnalysis.values.length === 0) {
-      setError('Complete todos os campos antes de validar');
+    console.log('Validando análise estratégica:', strategicAnalysis);
+    
+    if (!strategicAnalysis.purpose || strategicAnalysis.purpose.trim() === '') {
+      setError('O propósito da marca é obrigatório para continuar');
       return;
     }
     
+    // Validação mais flexível - permitir continuar mesmo com arrays vazios
+    if (strategicAnalysis.values.length === 0 && strategicAnalysis.personality_traits.length === 0) {
+      setError('Pelo menos um valor ou traço de personalidade é necessário');
+      return;
+    }
+    
+    console.log('Análise validada com sucesso, prosseguindo para etapa 3');
+    setError(null); // Limpar erros
     setStrategicAnalysis(prev => ({ ...prev, validated: true }));
     setCurrentStep(3);
   };
