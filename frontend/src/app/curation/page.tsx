@@ -587,6 +587,7 @@ export default function CurationPage() {
             </CardContent>
           </Card>
         </div>
+        </div>
       </div>
     </div>
   );
