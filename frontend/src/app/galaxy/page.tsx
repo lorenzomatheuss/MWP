@@ -12,6 +12,7 @@ import ReactFlow, {
   Edge,
   Connection,
   NodeTypes,
+  BackgroundVariant,
 } from 'reactflow';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -391,7 +392,7 @@ export default function GalaxyPage() {
           >
             <Controls />
             <MiniMap />
-            <Background variant="dots" gap={12} size={1} />
+            <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
           </ReactFlow>
         )}
       </div>
