@@ -372,7 +372,7 @@ export default function GalaxyPage() {
                 Pronto para explorar conceitos
               </h3>
               <p className="text-gray-600 mb-4">
-                Clique em "Gerar Galáxia" para criar elementos visuais baseados no seu briefing
+                Clique em 'Gerar Galáxia' para criar elementos visuais baseados no seu briefing
               </p>
             </div>
           </div>
