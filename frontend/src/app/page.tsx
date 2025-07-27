@@ -177,7 +177,7 @@ export default function HomePage() {
 
   const loadProjects = async () => {
     try {
-      const response = await fetch(`https://mwp-production-6b45.up.railway.app/projects/${userId}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setProjects(data.projects);
@@ -192,7 +192,7 @@ export default function HomePage() {
     
     setIsCreatingProject(true);
     try {
-      const response = await fetch('https://mwp-production-6b45.up.railway.app/projects', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -254,7 +254,7 @@ export default function HomePage() {
       formData.append('file', selectedFile);
       if (selectedProject) formData.append('project_id', selectedProject);
       
-      const response = await fetch('https://mwp-production-6b45.up.railway.app/parse-document', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/parse-document`, {
         method: 'POST',
         body: formData
       });
@@ -293,7 +293,7 @@ export default function HomePage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('https://mwp-production-6b45.up.railway.app/analyze-brief', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analyze-brief`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -328,7 +328,7 @@ export default function HomePage() {
     setError(null);
     
     try {
-      const response = await fetch('https://mwp-production-6b45.up.railway.app/strategic-analysis', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/strategic-analysis`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -382,7 +382,7 @@ export default function HomePage() {
     setError(null);
     
     try {
-      const response = await fetch('https://mwp-production-6b45.up.railway.app/generate-visual-concepts', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/generate-visual-concepts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -438,7 +438,7 @@ export default function HomePage() {
     try {
       const selectedConceptData = generatedVisuals?.concepts.find(c => c.id === selectedConcept);
       
-      const response = await fetch('https://mwp-production-6b45.up.railway.app/generate-brand-kit', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/generate-brand-kit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
