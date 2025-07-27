@@ -1459,8 +1459,8 @@ export default function HomePage() {
   return (
     <main className="container mx-auto p-8 space-y-8">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-2">MWP - Brand Co-Pilot</h1>
-        <p className="text-muted-foreground">Sistema de Identidade Visual Profissional</p>
+        <h1 className="text-4xl font-bold mb-2">5º Elemento</h1>
+        <p className="text-muted-foreground">Seu Co-Piloto de Branding Estratégico</p>
       </div>
 
       {renderStepIndicator()}
