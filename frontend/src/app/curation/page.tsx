@@ -10,7 +10,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 interface CuratedAsset {
   id: string;
-  type: 'image' | 'color_palette' | 'typography' | 'blended';
+  type: 'image' | 'color_palette' | 'typography' | 'blended' | 'metaphor';
   data: any;
   position: { x: number; y: number };
   size: { width: number; height: number };
