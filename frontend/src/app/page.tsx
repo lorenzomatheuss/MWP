@@ -1805,21 +1805,22 @@ export default function HomePage() {
           </div>
         </div>
 
-      {error && (
-        <div className="max-w-4xl mx-auto px-4 sm:px-0">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-700 text-sm sm:text-base">{error}</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setError(null)}
-              className="mt-2"
-            >
-              Fechar
-            </Button>
+        {error && (
+          <div className="max-w-4xl mx-auto px-4 sm:px-0">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-700 text-sm sm:text-base">{error}</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setError(null)}
+                className="mt-2"
+              >
+                Fechar
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </main>
   );
 }
