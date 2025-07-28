@@ -1742,23 +1742,23 @@ export default function HomePage() {
         {/* Hero Section */}
         <div className="text-center px-4 py-8 sm:py-12 relative">
           <div className="relative inline-block">
-            <HolographicText className="display-responsive mb-4" glitch>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-yellow-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent">
               5º ELEMENTO
-            </HolographicText>
+            </h1>
             
             {/* Orbiting elements */}
-            <div className="absolute -inset-8 animate-quantum-float">
-              <div className="absolute top-0 left-0 w-3 h-3 bg-brand-gold rounded-full animate-particle-drift" />
-              <div className="absolute top-0 right-0 w-2 h-2 bg-brand-neon-cyan rounded-full animate-particle-drift" style={{ animationDelay: '2s' }} />
-              <div className="absolute bottom-0 left-0 w-2 h-2 bg-brand-neon-purple rounded-full animate-particle-drift" style={{ animationDelay: '4s' }} />
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-brand-neon-pink rounded-full animate-particle-drift" style={{ animationDelay: '6s' }} />
+            <div className="absolute -inset-8">
+              <div className="absolute top-0 left-0 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
+              <div className="absolute top-0 right-0 w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+              <div className="absolute bottom-0 left-0 w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-pink-400 rounded-full animate-pulse" />
             </div>
           </div>
           
-          <p className="text-lg sm:text-xl text-muted-foreground/90 font-sans max-w-2xl mx-auto leading-relaxed">
-            <span className="text-brand-gold font-medium">4 elementos</span> criam a identidade. 
-            <span className="text-brand-neon-cyan font-medium">O 5º</span> cria 
-            <span className="text-brand-neon-purple font-bold">domínio de mercado</span>.
+          <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+            <span className="text-yellow-400 font-medium">4 elementos</span> criam a identidade. 
+            <span className="text-cyan-400 font-medium">O 5º</span> cria 
+            <span className="text-purple-400 font-bold">domínio de mercado</span>.
           </p>
           
           {/* API Status with futuristic design */}

@@ -15,10 +15,15 @@ export const QuantumParticles: React.FC<QuantumParticlesProps> = ({
   colors = ['#FFD700', '#00FFFF', '#8A2BE2', '#FF69B4']
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  
+  // SSR safety check
+  if (typeof window === 'undefined') {
+    return <div className={cn('fixed inset-0 pointer-events-none z-0', className)} />
+  }
 
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas || typeof window === 'undefined') return
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
@@ -124,6 +129,11 @@ export const NeuralNetwork: React.FC<NeuralNetworkProps> = ({
   nodeCount = 20
 }) => {
   const svgRef = useRef<SVGSVGElement>(null)
+  
+  // SSR safety check
+  if (typeof window === 'undefined') {
+    return <div className={cn('absolute inset-0 w-full h-full opacity-20', className)} />
+  }
 
   useEffect(() => {
     const svg = svgRef.current
