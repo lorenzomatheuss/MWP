@@ -59,7 +59,7 @@ def test_extract_text_error_handling():
     mock_file.content_type = "application/pdf"
     mock_file.file = io.BytesIO(b"invalid pdf")
     
-    with patch('main.PyPDF2.PdfReader', side_effect=Exception("PDF Error")):
+    with patch('PyPDF2.PdfReader', side_effect=Exception("PDF Error")):
         result = extract_text_from_file(mock_file)
         assert result == ""
 
@@ -85,9 +85,9 @@ def test_analyze_document_sections():
 def test_calculate_overall_confidence():
     """Test overall confidence calculation"""
     sections = [
-        {"confidence": 0.8, "content": "test1"},
-        {"confidence": 0.6, "content": "test2"},
-        {"confidence": 0.9, "content": "test3"}
+        {"confidence": 0.8, "content": "test1", "type": "company_info"},
+        {"confidence": 0.6, "content": "test2", "type": "target_audience"},
+        {"confidence": 0.9, "content": "test3", "type": "objectives"}
     ]
     
     confidence = calculate_overall_confidence(sections)
@@ -130,3 +130,50 @@ def test_analyze_strategic_elements_empty_input():
     assert "differentiation" in result
     assert "opportunities" in result
     assert "risks" in result
+
+
+def test_calculate_overall_confidence_with_types():
+    """Test confidence calculation with section types and weights"""
+    sections = [
+        {"confidence": 0.8, "content": "Company info", "type": "company_info"},
+        {"confidence": 0.9, "content": "Target audience", "type": "target_audience"},
+        {"confidence": 0.7, "content": "Brand values", "type": "values"}
+    ]
+    
+    confidence = calculate_overall_confidence(sections)
+    
+    assert isinstance(confidence, float)
+    assert 0.0 <= confidence <= 1.0
+    assert confidence > 0.0  # Should have meaningful confidence
+
+
+def test_analyze_document_sections_with_keywords():
+    """Test document analysis with specific brand keywords"""
+    text = """
+    Nossa empresa tem como objetivo principal criar soluções inovadoras.
+    Nosso público-alvo são profissionais de tecnologia entre 25-40 anos.
+    Nossos valores incluem inovação, qualidade e sustentabilidade.
+    A personalidade da marca é moderna, confiável e visionária.
+    """
+    
+    result = analyze_document_sections(text)
+    
+    assert isinstance(result, list)
+    if result:
+        # Check that sections have required fields
+        for section in result:
+            assert "confidence" in section
+            assert "content" in section
+            assert "type" in section
+            assert isinstance(section["confidence"], (int, float))
+            assert 0.0 <= section["confidence"] <= 1.0
+
+
+def test_extract_text_unsupported_format():
+    """Test handling of unsupported file formats"""
+    mock_file = Mock(spec=UploadFile)
+    mock_file.content_type = "image/jpeg"
+    mock_file.file = io.BytesIO(b"fake image data")
+    
+    result = extract_text_from_file(mock_file)
+    assert result == ""

@@ -5,6 +5,13 @@ import base64
 import numpy as np
 from unittest.mock import Mock, patch
 import requests
+from main import (
+    download_image_from_url,
+    blend_images,
+    apply_color_palette_to_image,
+    apply_artistic_filter,
+    image_to_base64
+)
 
 def test_create_test_image():
     """Test creating a basic test image"""
@@ -165,29 +172,15 @@ def test_image_composition():
     assert base.size == (200, 200)
     assert base.mode == 'RGB'
 
-@patch('requests.get')
-def test_download_image_from_url(mock_get):
-    """Test downloading image from URL"""
-    # Mock response
-    mock_response = Mock()
-    mock_response.status_code = 200
-    
-    # Create mock image data
+def test_image_download_simulation():
+    """Test image download simulation"""
+    # Create test image data
     test_img = Image.new('RGB', (100, 100), color='orange')
     img_bytes = io.BytesIO()
     test_img.save(img_bytes, format='JPEG')
-    mock_response.content = img_bytes.getvalue()
     
-    mock_get.return_value = mock_response
-    
-    def download_image(url):
-        response = requests.get(url)
-        if response.status_code == 200:
-            return Image.open(io.BytesIO(response.content))
-        return None
-    
-    url = "https://example.com/test.jpg"
-    downloaded_img = download_image(url)
+    # Simulate successful download
+    downloaded_img = Image.open(io.BytesIO(img_bytes.getvalue()))
     
     assert downloaded_img is not None
     assert downloaded_img.size == (100, 100)
@@ -246,3 +239,146 @@ def test_numpy_integration():
     
     assert img_from_array.size == img.size
     assert img_from_array.mode == img.mode
+
+
+def test_blend_images_function():
+    """Test the actual blend_images function from main.py"""
+    # Create test images
+    img1 = Image.new('RGB', (100, 100), color='red')
+    img2 = Image.new('RGB', (100, 100), color='blue')
+    images = [img1, img2]
+    
+    # Test different blend modes
+    blend_modes = ['overlay', 'multiply', 'screen', 'soft_light']
+    
+    for mode in blend_modes:
+        result = blend_images(images, mode)
+        assert isinstance(result, Image.Image)
+        assert result.size == (100, 100)
+        assert result.mode == 'RGB'
+
+
+def test_blend_images_single_image():
+    """Test blending with single image"""
+    img = Image.new('RGB', (100, 100), color='green')
+    result = blend_images([img], 'overlay')
+    
+    assert isinstance(result, Image.Image)
+    assert result.size == img.size
+
+
+def test_blend_images_empty_list():
+    """Test blending with empty image list"""
+    try:
+        result = blend_images([], 'overlay')
+        # Should handle empty list gracefully
+        assert result is None or isinstance(result, Image.Image)
+    except Exception:
+        # Exception is acceptable for empty input
+        pass
+
+
+def test_apply_color_palette_to_image_function():
+    """Test the actual apply_color_palette_to_image function"""
+    img = Image.new('RGB', (100, 100), color='white')
+    palette = ['#FF6B9D', '#45B7D1', '#96CEB4', '#FECA57']
+    
+    result = apply_color_palette_to_image(img, palette)
+    
+    assert isinstance(result, Image.Image)
+    assert result.size == img.size
+    assert result.mode == 'RGB'
+
+
+def test_apply_color_palette_empty_palette():
+    """Test applying empty color palette"""
+    img = Image.new('RGB', (100, 100), color='white')
+    
+    try:
+        result = apply_color_palette_to_image(img, [])
+        # Should handle empty palette gracefully
+        assert result is None or isinstance(result, Image.Image)
+    except Exception:
+        # Exception is acceptable for empty palette
+        pass
+
+
+def test_apply_artistic_filter_function():
+    """Test the actual apply_artistic_filter function"""
+    img = Image.new('RGB', (100, 100), color='blue')
+    
+    filter_types = ['vintage', 'modern', 'artistic', 'minimal']
+    
+    for filter_type in filter_types:
+        result = apply_artistic_filter(img, filter_type)
+        assert isinstance(result, Image.Image)
+        assert result.size == img.size
+        assert result.mode == 'RGB'
+
+
+def test_apply_artistic_filter_unknown_type():
+    """Test artistic filter with unknown type"""
+    img = Image.new('RGB', (100, 100), color='red')
+    
+    result = apply_artistic_filter(img, 'unknown_filter')
+    
+    # Should handle unknown filter type gracefully
+    assert isinstance(result, Image.Image)
+    assert result.size == img.size
+
+
+def test_image_to_base64_function():
+    """Test the actual image_to_base64 function"""
+    img = Image.new('RGB', (50, 50), color='purple')
+    
+    base64_str = image_to_base64(img)
+    
+    assert isinstance(base64_str, str)
+    assert len(base64_str) > 0
+    
+    # Should be valid base64
+    try:
+        decoded = base64.b64decode(base64_str)
+        assert len(decoded) > 0
+    except Exception:
+        assert False, "Should produce valid base64"
+
+
+@patch('requests.get')
+def test_download_image_from_url_function(mock_get):
+    """Test the actual download_image_from_url function"""
+    # Create mock response
+    mock_response = Mock()
+    mock_response.status_code = 200
+    
+    # Create test image data
+    test_img = Image.new('RGB', (100, 100), color='orange')
+    img_bytes = io.BytesIO()
+    test_img.save(img_bytes, format='JPEG')
+    mock_response.content = img_bytes.getvalue()
+    
+    mock_get.return_value = mock_response
+    
+    url = "https://example.com/test.jpg"
+    result = download_image_from_url(url)
+    
+    assert isinstance(result, Image.Image)
+    assert result.size == (100, 100)
+
+
+@patch('requests.get')
+def test_download_image_from_url_error(mock_get):
+    """Test download_image_from_url with error response"""
+    mock_response = Mock()
+    mock_response.status_code = 404
+    mock_get.return_value = mock_response
+    
+    url = "https://example.com/nonexistent.jpg"
+    
+    try:
+        result = download_image_from_url(url)
+        # Should handle error gracefully
+        assert result is None or isinstance(result, Image.Image)
+    except Exception:
+        # Exception is acceptable for error cases
+        pass
