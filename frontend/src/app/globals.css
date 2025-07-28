@@ -6,65 +6,55 @@
 
 @layer base {
   :root {
-    /* Revolutionary Color System - Quantum Brand Creation */
-    --background: 0 0% 2%; /* Deep cosmic black */
-    --foreground: 0 0% 98%; /* Pure white */
-    --card: 0 0% 4%; /* Card background with transparency */
-    --card-foreground: 0 0% 96%;
-    --popover: 0 0% 4%;
-    --popover-foreground: 0 0% 96%;
+    /* Light Mode - Premium Professional */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 8%;
     
-    /* Holographic Gold Gradient System */
-    --primary: 43 100% 55%; /* Base gold */
-    --primary-light: 38 100% 60%; /* Light gold */
-    --primary-dark: 48 100% 50%; /* Dark gold */
+    /* Premium Primary System */
+    --primary: 43 96% 56%; /* Professional gold */
     --primary-foreground: 0 0% 2%;
     
-    /* Neon Accent System */
-    --accent-cyan: 180 100% 50%; /* Neon cyan */
-    --accent-purple: 270 100% 65%; /* Electric purple */
-    --accent-pink: 330 100% 70%; /* Vibrant pink */
-    
-    --secondary: 0 0% 8%; /* Darker surface */
-    --secondary-foreground: 0 0% 92%;
-    --muted: 0 0% 12%; /* Muted surface */
-    --muted-foreground: 0 0% 60%;
-    --accent: 43 100% 55%;
-    --accent-foreground: 0 0% 2%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 15%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 15%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 15%; /* Subtle borders */
-    --input: 0 0% 8%; /* Input background */
-    --ring: 43 100% 55%; /* Focus ring */
-    --radius: 12px; /* Larger radius for modern look */
-    
-    /* Glass morphism variables */
-    --glass-bg: rgba(26, 26, 26, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --border: 0 0% 90%;
+    --input: 0 0% 96%;
+    --ring: 43 96% 56%;
+    --radius: 8px;
   }
 
   .dark {
-    /* Enhanced dark mode with same quantum aesthetic */
-    --background: 0 0% 1%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3%;
-    --card-foreground: 0 0% 96%;
-    --popover: 0 0% 3%;
-    --popover-foreground: 0 0% 96%;
-    --primary: 43 100% 55%;
-    --primary-foreground: 0 0% 2%;
-    --secondary: 0 0% 6%;
-    --secondary-foreground: 0 0% 92%;
-    --muted: 0 0% 10%;
+    /* Dark Mode - Premium Professional */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 95%;
+    
+    --primary: 43 96% 60%;
+    --primary-foreground: 0 0% 5%;
+    
+    --secondary: 0 0% 8%;
+    --secondary-foreground: 0 0% 85%;
+    --muted: 0 0% 8%;
     --muted-foreground: 0 0% 55%;
-    --accent: 43 100% 55%;
-    --accent-foreground: 0 0% 2%;
+    --accent: 0 0% 8%;
+    --accent-foreground: 0 0% 85%;
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 12%;
-    --input: 0 0% 6%;
-    --ring: 43 100% 55%;
+    --input: 0 0% 8%;
+    --ring: 43 96% 60%;
   }
 }
 
@@ -80,47 +70,27 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 215, 0, 0.15), transparent),
-                linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background)) 100%);
-    background-attachment: fixed;
     min-height: 100vh;
     overflow-x: hidden;
   }
   
-  /* Quantum particle animation background */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: 
-      radial-gradient(circle at 25% 25%, rgba(255, 215, 0, 0.1) 0%, transparent 70%),
-      radial-gradient(circle at 75% 75%, rgba(0, 255, 255, 0.08) 0%, transparent 70%),
-      radial-gradient(circle at 75% 25%, rgba(255, 105, 180, 0.06) 0%, transparent 70%),
-      radial-gradient(circle at 25% 75%, rgba(138, 43, 226, 0.08) 0%, transparent 70%);
-    animation: quantumFloat 20s ease-in-out infinite;
-    pointer-events: none;
-    z-index: -1;
-  }
-  
-  /* Futuristic typography */
+  /* Premium typography */
   .font-display {
-    font-family: 'Orbitron', monospace;
-    font-weight: 600;
-    letter-spacing: 0.05em;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
   
   .font-heading {
-    font-family: 'Orbitron', monospace;
-    font-weight: 500;
-    letter-spacing: 0.025em;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
   
   .font-body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     font-weight: 400;
+    line-height: 1.6;
   }
 }
 

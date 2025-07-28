@@ -5,10 +5,34 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useRouter } from 'next/navigation';
-import { Upload, FileText, CheckCircle, AlertCircle, ArrowRight, Sliders, Target, Heart, Zap, Palette, Wand2, Download, Eye, Package, FileDown, Image, Monitor, Sparkles, Atom, Cpu, Layers, Zap as Lightning, Orbit } from 'lucide-react';
-import { QuantumParticles, NeuralNetwork, HolographicText, QuantumButton, DataStream } from '@/components/ui/quantum-effects';
+import { Upload, FileText, CheckCircle, AlertCircle, ArrowRight, Sliders, Target, Heart, Zap, Palette, Wand2, Download, Eye, Package, FileDown, Image, Monitor, Sparkles, Atom, Cpu, Layers, Zap as Lightning, Orbit, Trash2, RefreshCcw, Plus, Settings, HelpCircle, MoreHorizontal } from 'lucide-react';
 import { QuantumSlider } from '@/components/ui/quantum-slider';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Project {
   id: string;
@@ -118,6 +142,7 @@ export default function HomePage() {
   const [newProjectName, setNewProjectName] = useState('');
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [currentBriefId, setCurrentBriefId] = useState<string | null>(null);
+  const [isDeletingProject, setIsDeletingProject] = useState<string | null>(null);
   
   // Estados para conexão da API
   const [apiHealth, setApiHealth] = useState<'checking' | 'healthy' | 'unhealthy'>('checking');
@@ -396,6 +421,47 @@ export default function HomePage() {
       setError('Erro ao criar projeto');
     } finally {
       setIsCreatingProject(false);
+    }
+  };
+
+  const deleteProject = async (projectId: string) => {
+    setIsDeletingProject(projectId);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        if (selectedProject === projectId) {
+          setSelectedProject(null);
+        }
+        await loadProjects();
+      }
+    } catch (err) {
+      setError('Erro ao excluir projeto');
+    } finally {
+      setIsDeletingProject(null);
+    }
+  };
+
+  const clearAllProjects = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/user/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setSelectedProject(null);
+        setProjects([]);
+      }
+    } catch (err) {
+      setError('Erro ao limpar projetos');
     }
   };
 
@@ -719,60 +785,208 @@ export default function HomePage() {
   // Render das etapas
   const renderStep1 = () => (
     <div className="space-y-8">
-      {/* Gerenciamento de Projetos */}
-      <Card className="">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3">
-            <Layers className="w-6 h-6 text-blue-600" />
-            Projetos
-          </CardTitle>
-          <CardDescription>Gerencie seus projetos de marca</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Nome do novo projeto..."
-                value={newProjectName}
-                onChange={(e) => setNewProjectName(e.target.value)}
-                className="flex-1"
-              />
-              <Button onClick={createProject} disabled={isCreatingProject || !newProjectName.trim()}>
-                {isCreatingProject ? 'Criando...' : 'Criar'}
-              </Button>
+      {/* Gerenciamento de Projetos Premium */}
+      <TooltipProvider>
+        <Card className="border-border/50 shadow-lg bg-card/80 backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Layers className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Gestão de Projetos</CardTitle>
+                  <CardDescription>Organize e gerencie seus projetos de branding</CardDescription>
+                </div>
+              </div>
+              
+              {projects.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <RefreshCcw className="mr-2 h-4 w-4" />
+                          Limpar Todos
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirmar Limpeza</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta ação irá remover todos os projetos permanentemente. Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={clearAllProjects}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Limpar Todos
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
-            {projects.length > 0 && (
-              <select 
-                value={selectedProject || ''} 
-                onChange={(e) => setSelectedProject(e.target.value || null)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <option value="">Selecione um projeto...</option>
-                {projects.map((project) => (
-                  <option key={project.id} value={project.id}>{project.name}</option>
-                ))}
-              </select>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            {/* Criar Novo Projeto */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-foreground">Novo Projeto</label>
+              <div className="flex gap-3">
+                <Input
+                  placeholder="Nome do projeto (ex: Rebranding Empresa X)"
+                  value={newProjectName}
+                  onChange={(e) => setNewProjectName(e.target.value)}
+                  className="flex-1 h-11 bg-background/50 border-border/50 focus:border-primary/50 transition-all"
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                    if (e.key === 'Enter' && newProjectName.trim()) {
+                      createProject();
+                    }
+                  }}
+                />
+                <Button 
+                  onClick={createProject} 
+                  disabled={isCreatingProject || !newProjectName.trim()}
+                  className="h-11 px-6 bg-primary hover:bg-primary/90 transition-all"
+                >
+                  {isCreatingProject ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2" />
+                      Criando
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Criar
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
 
-      {/* Upload de Documentos */}
-      <Card className="">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3">
-            <FileText className="w-6 h-6 text-green-600" />
-            Análise de Documentos
-          </CardTitle>
-          <CardDescription>
-            Faça upload de documentos estratégicos para análise automática
-          </CardDescription>
+            {/* Lista de Projetos */}
+            {projects.length > 0 ? (
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-foreground">Projetos Existentes</label>
+                <div className="grid gap-2">
+                  {projects.map((project) => (
+                    <div
+                      key={project.id}
+                      className={`flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer group hover:border-primary/50 ${
+                        selectedProject === project.id
+                          ? 'border-primary bg-primary/5 shadow-sm'
+                          : 'border-border/50 hover:bg-accent/50'
+                      }`}
+                      onClick={() => setSelectedProject(project.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${
+                          selectedProject === project.id ? 'bg-primary' : 'bg-muted-foreground/30'
+                        }`} />
+                        <div>
+                          <p className="font-medium text-sm">{project.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Criado em {new Date(project.created_at).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-1">
+                        {selectedProject === project.id && (
+                          <CheckCircle className="w-4 h-4 text-primary mr-2" />
+                        )}
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
+                              onClick={(e) => e.stopPropagation()}
+                              disabled={isDeletingProject === project.id}
+                            >
+                              {isDeletingProject === project.id ? (
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current" />
+                              ) : (
+                                <Trash2 className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Excluir Projeto</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza de que deseja excluir o projeto "{project.name}"? Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => deleteProject(project.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center mx-auto mb-3">
+                  <Package className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground mb-1">Nenhum projeto criado</p>
+                <p className="text-xs text-muted-foreground">Crie seu primeiro projeto para começar</p>
+              </div>
+            )}
+            
+            {selectedProject && (
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                <p className="text-sm text-primary font-medium">
+                  ✓ Projeto "{projects.find(p => p.id === selectedProject)?.name}" selecionado
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </TooltipProvider>
+
+      {/* Upload de Documentos Premium */}
+      <Card className="border-border/50 shadow-lg bg-card/80 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-emerald-500/10">
+              <FileText className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Análise Inteligente de Documentos</CardTitle>
+              <CardDescription>
+                Upload de briefs, apresentações e documentos estratégicos com IA
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <div 
             className={`
-              border-2 border-dashed rounded-lg p-8 text-center transition-colors
-              ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}
+              border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 group
+              ${dragActive ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-border/50 hover:border-primary/50 hover:bg-accent/30'}
             `}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -780,29 +994,55 @@ export default function HomePage() {
             onDrop={handleDrop}
           >
             {selectedFile ? (
-              <div className="space-y-4">
-                <FileText className="mx-auto text-blue-600" size={48} />
-                <div>
-                  <p className="font-medium">{selectedFile.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {Math.round(selectedFile.size / 1024)} KB
-                  </p>
+              <div className="space-y-6">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mx-auto">
+                  <FileText className="w-8 h-8 text-primary" />
                 </div>
-                <div className="flex gap-2 justify-center">
-                  <Button onClick={parseDocument} disabled={isUploading}>
-                    {isUploading ? 'Processando...' : 'Processar Documento'}
+                <div className="space-y-2">
+                  <p className="font-semibold text-lg">{selectedFile.name}</p>
+                  <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+                    <span>{Math.round(selectedFile.size / 1024)} KB</span>
+                    <span>•</span>
+                    <span>{selectedFile.type || 'Documento'}</span>
+                  </div>
+                </div>
+                <div className="flex gap-3 justify-center">
+                  <Button 
+                    onClick={parseDocument} 
+                    disabled={isUploading}
+                    className="px-8 h-11"
+                  >
+                    {isUploading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2" />
+                        Processando com IA...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Processar com IA
+                      </>
+                    )}
                   </Button>
-                  <Button variant="outline" onClick={() => setSelectedFile(null)}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSelectedFile(null)}
+                    className="h-11"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
                     Remover
                   </Button>
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                <Upload className="mx-auto text-gray-400" size={48} />
-                <div>
-                  <p className="text-lg font-medium">Arraste um arquivo aqui</p>
-                  <p className="text-gray-500">ou clique para selecionar</p>
+              <div className="space-y-6">
+                <div className="flex items-center justify-center w-20 h-20 rounded-full bg-muted/20 mx-auto group-hover:bg-primary/10 transition-colors">
+                  <Upload className="w-10 h-10 text-muted-foreground group-hover:text-primary transition-colors" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xl font-semibold">Arraste arquivos aqui</p>
+                  <p className="text-muted-foreground">Ou clique para selecionar documentos</p>
+                  <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, TXT, PPT, PPTX (máx. 10MB)</p>
                 </div>
                 <input
                   type="file"
@@ -812,7 +1052,8 @@ export default function HomePage() {
                   id="file-upload"
                 />
                 <label htmlFor="file-upload">
-                  <Button variant="outline" className="cursor-pointer">
+                  <Button variant="outline" className="cursor-pointer h-11 px-8">
+                    <Plus className="w-4 h-4 mr-2" />
                     Selecionar Arquivo
                   </Button>
                 </label>
@@ -820,53 +1061,81 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* Preview das seções extraídas */}
+          {/* Preview Premium das seções extraídas */}
           {uploadResult && (
-            <div className="mt-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Seções Estratégicas Identificadas</h3>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between p-4 rounded-lg bg-accent/30 border border-border/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-background">
+                    <Eye className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Análise Concluída</h3>
+                    <p className="text-sm text-muted-foreground">Seções estratégicas identificadas por IA</p>
+                  </div>
+                </div>
                 <div className={`
-                  flex items-center gap-2 px-3 py-1 rounded-full text-sm
+                  flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium
                   ${uploadResult.overall_confidence > 0.7 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-yellow-100 text-yellow-800'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400' 
+                    : 'bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-400'
                   }
                 `}>
-                  {uploadResult.overall_confidence > 0.7 ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-                  Confidence: {Math.round(uploadResult.overall_confidence * 100)}%
+                  {uploadResult.overall_confidence > 0.7 ? (
+                    <CheckCircle className="w-4 h-4" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4" />
+                  )}
+                  Confiança: {Math.round(uploadResult.overall_confidence * 100)}%
                 </div>
               </div>
               
-              <div className="grid gap-3">
+              <div className="grid gap-4">
                 {uploadResult.sections.map((section, index) => (
-                  <div key={index} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">{section.title}</h4>
+                  <div key={index} className="p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card/80 transition-all">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          section.confidence > 0.7 ? 'bg-emerald-500' : 'bg-amber-500'
+                        }`} />
+                        <h4 className="font-semibold text-sm">{section.title}</h4>
+                      </div>
                       <span className={`
-                        px-2 py-1 rounded text-xs
+                        px-3 py-1 rounded-full text-xs font-medium
                         ${section.confidence > 0.7 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' 
+                          : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
                         }
                       `}>
                         {Math.round(section.confidence * 100)}%
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-3">{section.content}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{section.content}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <Button 
                   onClick={validateAndProceed}
                   disabled={uploadResult.overall_confidence < 0.7}
-                  className="flex-1"
+                  className="flex-1 h-11"
                 >
-                  Prosseguir para Análise
+                  {uploadResult.overall_confidence > 0.7 ? (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Prosseguir para Análise
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="w-4 h-4 mr-2" />
+                      Confiança Insuficiente
+                    </>
+                  )}
                 </Button>
                 {uploadResult.overall_confidence < 0.7 && (
-                  <Button variant="outline" onClick={() => setCurrentStep(1)}>
+                  <Button variant="outline" onClick={() => setCurrentStep(1)} className="h-11">
+                    <FileText className="w-4 h-4 mr-2" />
                     Inserir Manualmente
                   </Button>
                 )}
@@ -876,42 +1145,97 @@ export default function HomePage() {
         </CardContent>
       </Card>
 
-      {/* Entrada Manual como Fallback */}
-      <Card className="">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3">
-            <Zap className="w-6 h-6 text-purple-600" />
-            Entrada Manual
-          </CardTitle>
-          <CardDescription>Entrada direta de dados da marca</CardDescription>
+      {/* Entrada Manual Premium */}
+      <Card className="border-border/50 shadow-lg bg-card/80 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-violet-500/10">
+              <Zap className="w-5 h-5 text-violet-600" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Brief Estratégico</CardTitle>
+              <CardDescription>
+                Descreva seu projeto para análise completa com IA generativa
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        
+        <CardContent className="space-y-6">
+          {!selectedProject && (
+            <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-500/5 dark:border-amber-500/20">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-400">
+                    Projeto Obrigatório
+                  </p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400/80 mt-1">
+                    Selecione ou crie um projeto antes de inserir o brief
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-foreground">Brief do Projeto</label>
             <Textarea
-              placeholder="Descreva o projeto, objetivos, público-alvo, valores da marca..."
+              placeholder="Exemplo: Projeto de rebranding para empresa de tecnologia B2B. Objetivo: modernizar a identidade visual e comunicar inovação. Público-alvo: CTOs e diretores de TI de empresas médias e grandes. Valores: inovação, confiabilidade, expertise técnica..."
               value={brief}
               onChange={(e) => setBrief(e.target.value)}
-              rows={6}
+              rows={8}
+              className="min-h-[200px] bg-background/50 border-border/50 focus:border-primary/50 transition-all resize-none"
             />
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Inclua: objetivo, público-alvo, valores, posicionamento desejado</span>
+              <span>{brief.length}/2000 caracteres</span>
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
             <Button
               size="lg"
               onClick={handleAnalyze} 
               disabled={isLoading || !brief.trim() || !selectedProject}
-              className="w-full font-bold text-lg"
+              className="flex-1 h-12 font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all"
             >
               {isLoading ? (
                 <>
-                  <Cpu className="w-5 h-5 mr-2 animate-spin" />
-                  Analisando...
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2" />
+                  Processando com IA...
                 </>
               ) : (
                 <>
                   <Sparkles className="w-5 h-5 mr-2" />
-                  Iniciar Análise
+                  Iniciar Análise Estratégica
                 </>
               )}
             </Button>
+            
+            {brief.trim() && (
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setBrief('')}
+                className="h-12 px-6"
+              >
+                <RefreshCcw className="w-4 h-4 mr-2" />
+                Limpar
+              </Button>
+            )}
           </div>
+          
+          {brief.trim() && brief.length < 50 && (
+            <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 dark:bg-blue-500/5 dark:border-blue-500/20">
+              <div className="flex items-start gap-2">
+                <HelpCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-blue-700 dark:text-blue-400">
+                  Para uma análise mais precisa, inclua mais detalhes sobre o projeto, objetivos e público-alvo.
+                </p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -1679,39 +2003,67 @@ export default function HomePage() {
   );
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <main className="min-h-screen bg-background transition-colors duration-300">
       
       <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8 sm:space-y-12 relative z-10">
+        {/* Premium Header */}
+        <div className="border-b border-border/20 bg-card/50 backdrop-blur-xl sticky top-0 z-50">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary via-primary/80 to-primary/60 flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">5º</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-foreground">5º Elemento</h1>
+                <p className="text-xs text-muted-foreground">Premium Branding Platform</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border/20">
+                <div className={`w-2 h-2 rounded-full ${
+                  apiHealth === 'healthy' ? 'bg-emerald-500' : 
+                  apiHealth === 'unhealthy' ? 'bg-red-500' : 
+                  'bg-yellow-500'
+                }`} />
+                <span className="text-xs font-medium text-muted-foreground">
+                  {apiHealth === 'healthy' ? 'Online' : 
+                   apiHealth === 'unhealthy' ? 'Offline' : 
+                   'Conectando...'}
+                </span>
+              </div>
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+        
         {/* Hero Section */}
-        <div className="text-center px-4 py-8 sm:py-12 relative">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 text-slate-800">
-            5º ELEMENTO
-          </h1>
-          
-          <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            <span className="text-blue-600 font-medium">4 elementos</span> criam a identidade. 
-            <span className="text-green-600 font-medium">O 5º</span> cria 
-            <span className="text-purple-600 font-bold">domínio de mercado</span>.
-          </p>
-          
-          <div className="flex items-center justify-center gap-3 mt-6">
-            <div className={`w-3 h-3 rounded-full ${
-              apiHealth === 'healthy' ? 'bg-green-500' : 
-              apiHealth === 'unhealthy' ? 'bg-red-500' : 
-              'bg-yellow-500'
-            }`} />
-            <span className="text-sm text-slate-600">
-              <span className="font-medium">Sistema:</span>{' '}
-              <span className={`font-bold ${
-                apiHealth === 'healthy' ? 'text-green-600' : 
-                apiHealth === 'unhealthy' ? 'text-red-600' : 
-                'text-yellow-600'
-              }`}>
-                {apiHealth === 'healthy' ? 'Online' : 
-                 apiHealth === 'unhealthy' ? 'Offline' : 
-                 'Iniciando...'}
-              </span>
-            </span>
+        <div className="text-center px-4 py-12 relative">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              Identidade que Domina Mercados
+            </h2>
+            
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8">
+              <span className="text-primary font-medium">4 elementos</span> criam a identidade. 
+              <span className="text-primary font-medium">O 5º</span> cria 
+              <span className="text-foreground font-bold">domínio de mercado</span>.
+            </p>
+            
+            <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <span>IA Generativa</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <span>Análise Estratégica</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <span>Export Profissional</span>
+              </div>
+            </div>
           </div>
         </div>
 
