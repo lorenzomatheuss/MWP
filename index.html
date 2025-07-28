@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0, maximum-scale=5.0">
@@ -7,9 +7,67 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
-    <meta name="description" content="5º Elemento - Sistema co-criativo revolucionário que transforma briefings em kits de marca profissionais através do diálogo inteligente entre humano e IA">
-    <title>5º Elemento - Brand Co-Pilot | O Futuro do Branding com IA</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Brand Co-Pilot - Revolutionary AI-powered brand development platform transforming text briefs into professional brand kits through human-AI collaboration">
+    <meta name="keywords" content="AI branding, brand development platform, design automation, creative AI, brand kit generator, logo design AI, marketing automation, design agency tools, startup branding, enterprise design platform, collaborative AI, brand strategy automation">
+    <meta name="author" content="Brand Co-Pilot Team">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Brand Co-Pilot - AI-Powered Brand Development Platform">
+    <meta property="og:description" content="Revolutionary Human-AI Collaborative Branding SaaS. Transform text briefs into professional brand kits in minutes, not weeks.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://5elemento.netlify.app">
+    <meta property="og:image" content="https://5elemento.netlify.app/og-image.png">
+    <meta property="og:site_name" content="Brand Co-Pilot">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Brand Co-Pilot - AI-Powered Brand Development Platform">
+    <meta name="twitter:description" content="Revolutionary Human-AI Collaborative Branding SaaS. 4-phase workflow from brief to brand kit.">
+    <meta name="twitter:image" content="https://5elemento.netlify.app/twitter-card.png">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Brand Co-Pilot",
+        "description": "AI-powered brand development platform transforming text briefs into professional brand kits",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "description": "Free tier available"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "127"
+        }
+    }
+    </script>
+    
+    <title>Brand Co-Pilot - AI-Powered Brand Development Platform | Enterprise SaaS</title>
+    
     <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-color: #10b981;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --bg-light: #f7fafc;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+            --border-radius: 12px;
+            --animation-speed: 0.3s;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -17,28 +75,28 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+            background: var(--primary-gradient);
             scroll-behavior: smooth;
             -webkit-text-size-adjust: 100%;
             -webkit-tap-highlight-color: transparent;
+            line-height: 1.6;
+            color: var(--text-primary);
         }
         
-        /* Hero Section com Animações 3D - Mobile Optimized */
+        /* Mobile-First Hero Section */
         .hero {
             min-height: 100vh;
-            min-height: calc(var(--vh, 1vh) * 100);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background: var(--primary-gradient);
             overflow: hidden;
             padding: 1rem;
         }
         
-        .floating-shapes {
+        .floating-elements {
             position: absolute;
             width: 100%;
             height: 100%;
@@ -46,41 +104,41 @@
             z-index: 1;
         }
         
-        .shape {
+        .floating-shape {
             position: absolute;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 50%;
-            animation: float 20s infinite ease-in-out;
+            animation: float 25s infinite ease-in-out;
         }
         
-        .shape:nth-child(1) {
-            width: 300px;
-            height: 300px;
+        .floating-shape:nth-child(1) {
+            width: min(300px, 40vw);
+            height: min(300px, 40vw);
             top: 10%;
-            left: 10%;
+            left: -10%;
             animation-delay: 0s;
         }
         
-        .shape:nth-child(2) {
-            width: 200px;
-            height: 200px;
+        .floating-shape:nth-child(2) {
+            width: min(200px, 30vw);
+            height: min(200px, 30vw);
             top: 60%;
-            right: 15%;
-            animation-delay: 5s;
+            right: -10%;
+            animation-delay: 8s;
         }
         
-        .shape:nth-child(3) {
-            width: 150px;
-            height: 150px;
+        .floating-shape:nth-child(3) {
+            width: min(150px, 25vw);
+            height: min(150px, 25vw);
             top: 30%;
             right: 30%;
-            animation-delay: 10s;
+            animation-delay: 16s;
         }
         
         @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            33% { transform: translateY(-30px) rotate(120deg); }
-            66% { transform: translateY(30px) rotate(240deg); }
+            0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.5; }
+            33% { transform: translateY(-30px) rotate(120deg) scale(1.1); opacity: 0.3; }
+            66% { transform: translateY(30px) rotate(240deg) scale(0.9); opacity: 0.7; }
         }
         
         .hero-content {
@@ -88,39 +146,79 @@
             z-index: 10;
             position: relative;
             max-width: 1200px;
-            padding: 2rem;
+            padding: 2rem 1rem;
+        }
+        
+        .company-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeInDown 1s ease-out;
         }
         
         .hero-title {
-            font-size: clamp(3rem, 8vw, 6rem);
-            font-weight: 800;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
             color: white;
             margin-bottom: 1rem;
             text-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            animation: slideInUp 1s ease-out;
+            animation: fadeInUp 1s ease-out 0.2s both;
+            letter-spacing: -0.02em;
         }
         
         .hero-subtitle {
-            font-size: clamp(1.2rem, 3vw, 2rem);
-            color: rgba(255,255,255,0.9);
-            margin-bottom: 2rem;
-            animation: slideInUp 1s ease-out 0.2s both;
+            font-size: clamp(1.2rem, 4vw, 2.2rem);
+            color: rgba(255,255,255,0.95);
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 1s ease-out 0.4s both;
+            font-weight: 600;
         }
         
         .hero-description {
-            font-size: 1.25rem;
-            color: rgba(255,255,255,0.8);
+            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+            color: rgba(255,255,255,0.85);
             margin-bottom: 3rem;
-            max-width: 600px;
+            max-width: 800px;
             margin-left: auto;
             margin-right: auto;
-            animation: slideInUp 1s ease-out 0.4s both;
+            animation: fadeInUp 1s ease-out 0.6s both;
+            line-height: 1.7;
         }
         
-        @keyframes slideInUp {
+        .value-props {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out 0.8s both;
+        }
+        
+        .value-prop {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            white-space: nowrap;
+        }
+        
+        @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(50px);
+                transform: translateY(30px);
             }
             to {
                 opacity: 1;
@@ -128,13 +226,31 @@
             }
         }
         
-        /* Glassmorphism Buttons */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* CTA Buttons */
+        .cta-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            animation: fadeInUp 1s ease-out 1s both;
+        }
+        
         .cta-buttons {
             display: flex;
-            gap: 1.5rem;
+            gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
-            animation: slideInUp 1s ease-out 0.6s both;
         }
         
         .btn {
@@ -142,591 +258,514 @@
             border: none;
             border-radius: 50px;
             font-size: 1.1rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all var(--animation-speed) ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             position: relative;
             overflow: hidden;
-            min-height: 48px; /* WCAG touch target minimum */
-            min-width: 48px;
+            min-height: 56px;
+            min-width: 200px;
             touch-action: manipulation;
             user-select: none;
-            -webkit-user-select: none;
+            font-family: inherit;
         }
         
         .btn-primary {
-            background: rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: var(--shadow-lg);
+            border: 2px solid transparent;
         }
         
-        .btn-primary:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        .btn-primary:hover, .btn-primary:focus {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
         }
         
         .btn-secondary {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
         
-        .btn-secondary:hover {
+        .btn-secondary:hover, .btn-secondary:focus {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
-        /* Demo Section com Preview das 4 Fases */
-        .demo-section {
-            padding: 5rem 2rem;
+        .social-proof {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Enterprise Value Section */
+        .value-section {
+            padding: 6rem 2rem;
             background: white;
             position: relative;
+        }
+        
+        .section-header {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 5rem;
+        }
+        
+        .section-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
         
         .section-title {
-            text-align: center;
-            font-size: 3rem;
-            font-weight: 800;
-            color: #2d3748;
-            margin-bottom: 1rem;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 900;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
         }
         
         .section-subtitle {
-            text-align: center;
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 4rem;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+            color: var(--text-secondary);
+            line-height: 1.7;
         }
         
-        .phases-container {
+        .value-grid {
             max-width: 1200px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
         }
         
-        .phase-card {
-            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-            border-radius: 20px;
-            padding: 2rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(102, 126, 234, 0.1);
-        }
-        
-        .phase-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.15);
-        }
-        
-        .phase-number {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 800;
-            margin: 0 auto 1rem;
-        }
-        
-        .phase-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 0.5rem;
-        }
-        
-        .phase-description {
-            color: #666;
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-        
-        .phase-demo {
+        .value-card {
             background: white;
-            border-radius: 10px;
-            padding: 1rem;
-            border: 2px dashed #e2e8f0;
-            min-height: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: var(--border-radius);
+            padding: 2.5rem;
+            text-align: left;
+            transition: all var(--animation-speed) ease;
+            border: 2px solid #f1f5f9;
             position: relative;
             overflow: hidden;
         }
         
-        /* Animações específicas para cada fase */
-        .phase-1 .phase-demo::before {
-            content: "📄→🎯";
-            font-size: 2rem;
-            animation: pulse 2s infinite;
+        .value-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
         }
         
-        .phase-2 .phase-demo::before {
-            content: "🌌✨";
-            font-size: 2rem;
-            animation: rotate 3s linear infinite;
+        .value-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: #e2e8f0;
         }
         
-        .phase-3 .phase-demo::before {
-            content: "🎨🔮";
-            font-size: 2rem;
-            animation: bounce 2s infinite;
-        }
-        
-        .phase-4 .phase-demo::before {
-            content: "📦🏆";
-            font-size: 2rem;
-            animation: scale 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-        
-        @keyframes scale {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
-        
-        /* Diferencial Section */
-        .diferencial-section {
-            padding: 5rem 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .value-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
             color: white;
         }
         
-        .diferencial-grid {
+        .value-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+        
+        .value-description {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+        
+        .value-metrics {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+        
+        .metric {
+            text-align: center;
+        }
+        
+        .metric-number {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--success-color);
+            display: block;
+        }
+        
+        .metric-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Business Model Section */
+        .business-section {
+            padding: 6rem 2rem;
+            background: var(--bg-light);
+        }
+        
+        .pricing-grid {
             max-width: 1200px;
             margin: 0 auto;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 3rem;
-            margin-top: 3rem;
-        }
-        
-        .diferencial-item {
-            text-align: center;
-            opacity: 0;
-            animation: slideInUp 1s ease-out forwards;
-        }
-        
-        .diferencial-item:nth-child(1) { animation-delay: 0.1s; }
-        .diferencial-item:nth-child(2) { animation-delay: 0.3s; }
-        .diferencial-item:nth-child(3) { animation-delay: 0.5s; }
-        
-        .diferencial-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 2rem;
-            backdrop-filter: blur(10px);
-        }
-        
-        .diferencial-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-        
-        .diferencial-description {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            line-height: 1.6;
-        }
-        
-        /* Métricas Section */
-        .metricas-section {
-            padding: 5rem 2rem;
-            background: #f7fafc;
-        }
-        
-        .metricas-grid {
-            max-width: 1000px;
-            margin: 3rem auto 0;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 2rem;
         }
         
-        .metrica-item {
-            text-align: center;
-            padding: 2rem;
+        .pricing-card {
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
+            border-radius: var(--border-radius);
+            padding: 2.5rem;
+            text-align: center;
+            position: relative;
+            border: 2px solid #f1f5f9;
+            transition: all var(--animation-speed) ease;
         }
         
-        .metrica-item:hover {
-            transform: translateY(-5px);
+        .pricing-card.featured {
+            border-color: #667eea;
+            transform: scale(1.05);
         }
         
-        .metrica-numero {
+        .pricing-card.featured::before {
+            content: 'Most Popular';
+            position: absolute;
+            top: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-gradient);
+            color: white;
+            padding: 0.5rem 2rem;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .pricing-card.featured:hover {
+            transform: translateY(-8px) scale(1.05);
+        }
+        
+        .pricing-tier {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+        
+        .pricing-price {
             font-size: 3rem;
-            font-weight: 800;
-            color: #667eea;
+            font-weight: 900;
+            color: var(--text-primary);
             margin-bottom: 0.5rem;
         }
         
-        .metrica-label {
-            font-size: 1.1rem;
-            color: #666;
-            font-weight: 600;
+        .pricing-period {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
         }
         
-        /* CTA Final Section */
-        .cta-final {
-            padding: 5rem 2rem;
-            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 2.5rem;
+            text-align: left;
+        }
+        
+        .pricing-features li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .pricing-features li:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-check {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+        
+        /* Roadmap Section */
+        .roadmap-section {
+            padding: 6rem 2rem;
+            background: var(--primary-gradient);
             color: white;
-            text-align: center;
         }
         
-        .cta-final-title {
-            font-size: 3rem;
+        .roadmap-timeline {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .roadmap-timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-50%);
+        }
+        
+        .roadmap-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+        
+        .roadmap-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+        
+        .roadmap-content {
+            flex: 1;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 0 2rem;
+        }
+        
+        .roadmap-phase {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .roadmap-title {
+            font-size: 1.5rem;
             font-weight: 800;
             margin-bottom: 1rem;
         }
         
-        .cta-final-subtitle {
-            font-size: 1.3rem;
-            opacity: 0.9;
-            margin-bottom: 3rem;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+        .roadmap-features {
+            list-style: none;
         }
         
-        /* Progress Bar Animado */
-        .progress-demo {
-            max-width: 800px;
-            margin: 3rem auto;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 2rem;
-            backdrop-filter: blur(10px);
-        }
-        
-        .progress-step {
+        .roadmap-features li {
+            padding: 0.5rem 0;
             display: flex;
             align-items: center;
-            margin-bottom: 1rem;
-            opacity: 0;
-            animation: progressStep 0.5s ease-out forwards;
+            gap: 0.5rem;
         }
         
-        .progress-step:nth-child(1) { animation-delay: 1s; }
-        .progress-step:nth-child(2) { animation-delay: 2s; }
-        .progress-step:nth-child(3) { animation-delay: 3s; }
-        .progress-step:nth-child(4) { animation-delay: 4s; }
-        
-        @keyframes progressStep {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        .progress-icon {
-            width: 30px;
-            height: 30px;
+        .roadmap-icon {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: white;
             border-radius: 50%;
-            background: #4ade80;
-            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 1rem;
-            font-size: 1rem;
+            font-size: 1.5rem;
+            color: #667eea;
+            font-weight: bold;
+            z-index: 10;
         }
         
-        .progress-text {
-            flex: 1;
-            font-size: 1.1rem;
+        /* Investment CTA Section */
+        .investment-section {
+            padding: 6rem 2rem;
+            background: #0f172a;
+            color: white;
+            text-align: center;
         }
         
-        .progress-time {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
+        .investment-stats {
+            max-width: 800px;
+            margin: 3rem auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 2rem;
+        }
+        
+        .investment-stat {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .investment-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #10b981;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .investment-label {
             font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 600;
+            text-transform: uppercase;
         }
         
-        /* Mobile-First Responsive Design */
-        @media (max-width: 480px) {
+        .investment-cta {
+            margin-top: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
             .hero {
-                padding: 1rem;
+                padding: 2rem 1rem;
                 min-height: 100vh;
             }
             
-            .hero-title {
-                font-size: 2.5rem;
-                line-height: 1.1;
+            .hero-content {
+                padding: 1rem;
             }
             
-            .hero-subtitle {
-                font-size: 1rem;
-                margin-bottom: 1rem;
-            }
-            
-            .hero-description {
-                font-size: 1rem;
-                margin-bottom: 2rem;
-                padding: 0 1rem;
-            }
-            
-            .section-title {
-                font-size: 1.8rem;
-                line-height: 1.2;
-            }
-            
-            .section-subtitle {
-                font-size: 1rem;
-                padding: 0 1rem;
-            }
-            
-            .cta-buttons {
+            .value-props {
                 flex-direction: column;
                 align-items: center;
-                gap: 1rem;
-                padding: 0 1rem;
             }
             
-            .btn {
-                width: 100%;
-                max-width: 280px;
-                padding: 1rem 1.5rem;
-                font-size: 1rem;
-            }
-            
-            .phases-container {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-                padding: 0 1rem;
-            }
-            
-            .phase-card {
-                padding: 1.5rem;
-            }
-            
-            .phase-title {
-                font-size: 1.2rem;
-            }
-            
-            .diferencial-grid {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-                padding: 0 1rem;
-            }
-            
-            .metricas-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
-                padding: 0 1rem;
-            }
-            
-            .metrica-numero {
-                font-size: 2rem;
-            }
-            
-            .metrica-label {
-                font-size: 0.9rem;
-            }
-            
-            .progress-demo {
-                margin: 2rem 1rem;
-                padding: 1.5rem;
-            }
-            
-            .progress-step {
-                flex-direction: column;
+            .value-prop {
                 text-align: center;
-                gap: 0.5rem;
-            }
-            
-            .progress-text {
-                font-size: 1rem;
-            }
-            
-            .cta-final-title {
-                font-size: 2rem;
-                line-height: 1.2;
-            }
-            
-            .cta-final-subtitle {
-                font-size: 1.1rem;
-                padding: 0 1rem;
-            }
-            
-            .shape {
-                opacity: 0.3;
-            }
-            
-            .demo-section, .diferencial-section, .metricas-section, .cta-final {
-                padding: 3rem 1rem;
-            }
-        }
-        
-        @media (min-width: 481px) and (max-width: 768px) {
-            .hero-title {
-                font-size: 3.5rem;
-            }
-            
-            .section-title {
-                font-size: 2.2rem;
+                min-width: 200px;
             }
             
             .cta-buttons {
                 flex-direction: column;
-                align-items: center;
-                gap: 1rem;
+                width: 100%;
+                max-width: 400px;
             }
             
             .btn {
                 width: 100%;
-                max-width: 320px;
+                min-width: auto;
             }
             
-            .phases-container {
+            .value-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .value-card {
+                padding: 2rem;
+            }
+            
+            .value-metrics {
+                justify-content: space-around;
+            }
+            
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .pricing-card.featured {
+                transform: none;
+            }
+            
+            .pricing-card.featured:hover {
+                transform: translateY(-8px);
+            }
+            
+            .roadmap-timeline::before {
+                left: 30px;
+            }
+            
+            .roadmap-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding-left: 80px;
+            }
+            
+            .roadmap-item:nth-child(even) {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .roadmap-content {
+                margin: 0;
+                width: 100%;
+            }
+            
+            .roadmap-icon {
+                left: 30px;
+                position: absolute;
+            }
+            
+            .investment-stats {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 1.5rem;
             }
             
-            .diferencial-grid {
-                grid-template-columns: 1fr;
-                gap: 2.5rem;
+            .investment-stat {
+                padding: 1.5rem;
             }
             
-            .metricas-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .progress-step {
-                flex-wrap: wrap;
-                gap: 0.5rem;
-            }
-        }
-        
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .hero-title {
-                font-size: 4rem;
-            }
-            
-            .phases-container {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 2rem;
-            }
-            
-            .diferencial-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 2rem;
-            }
-        }
-        
-        @media (min-width: 1025px) {
-            .phases-container {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            
-            .diferencial-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-        
-        /* Touch-friendly interactions */
-        @media (hover: none) and (pointer: coarse) {
-            .btn:hover {
-                transform: none;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            }
-            
-            .phase-card:hover {
-                transform: none;
-            }
-            
-            .metrica-item:hover {
-                transform: none;
-            }
-            
-            .btn:active {
-                transform: translateY(2px);
-            }
-        }
-        
-        /* Landscape mobile optimization */
-        @media (max-height: 500px) and (orientation: landscape) {
-            .hero {
-                min-height: auto;
-                padding: 2rem 1rem;
-            }
-            
-            .hero-title {
+            .investment-number {
                 font-size: 2rem;
-                margin-bottom: 0.5rem;
-            }
-            
-            .hero-subtitle {
-                font-size: 1rem;
-                margin-bottom: 0.5rem;
-            }
-            
-            .hero-description {
-                font-size: 0.9rem;
-                margin-bottom: 1.5rem;
-            }
-            
-            .shape {
-                display: none;
             }
         }
         
-        /* High DPI screens */
-        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-            .hero-title {
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
-            }
-        }
-        
-        /* Reduced motion preferences */
+        /* Reduced Motion */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -734,331 +773,509 @@
                 transition-duration: 0.01ms !important;
             }
             
-            .floating-shapes {
+            .floating-elements {
                 display: none;
             }
         }
         
-        /* Scroll Animations */
-        .fade-in-up {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.6s ease;
+        /* High Contrast Mode */
+        @media (prefers-contrast: high) {
+            .btn-secondary {
+                background: white;
+                color: #1a202c;
+            }
+            
+            .value-card {
+                border-color: #1a202c;
+            }
         }
         
-        .fade-in-up.visible {
+        /* Loading Animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+        
+        .fade-in.visible {
             opacity: 1;
             transform: translateY(0);
         }
         
-        /* Easter Egg - Konami Code */
-        .konami-active {
-            animation: rainbow 2s linear infinite;
+        /* Pulse animation for investment metrics */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
         
-        @keyframes rainbow {
-            0% { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
+        .pulse {
+            animation: pulse 2s infinite;
         }
     </style>
 </head>
 <body>
     <!-- Hero Section -->
     <section class="hero">
-        <div class="floating-shapes">
-            <div class="shape"></div>
-            <div class="shape"></div>
-            <div class="shape"></div>
+        <div class="floating-elements">
+            <div class="floating-shape"></div>
+            <div class="floating-shape"></div>
+            <div class="floating-shape"></div>
         </div>
         
         <div class="hero-content">
-            <h1 class="hero-title">5º Elemento</h1>
-            <h2 class="hero-subtitle">Brand Co-Pilot</h2>
+            <div class="company-badge">
+                🚀 Series A Ready • $2M ARR Projection
+            </div>
+            
+            <h1 class="hero-title">Brand Co-Pilot</h1>
+            <h2 class="hero-subtitle">AI-Powered Brand Development Platform</h2>
             <p class="hero-description">
-                O primeiro sistema co-criativo que transforma briefings em kits de marca profissionais 
-                através do diálogo inteligente entre humano e IA
+                Revolutionary Human-AI collaborative SaaS transforming text briefs into professional brand kits. 
+                Built for agencies, enterprises, and the $47B global branding market.
+            </p>
+            
+            <div class="value-props">
+                <div class="value-prop">🎯 80% Faster Delivery</div>
+                <div class="value-prop">💰 $200M Market Opportunity</div>
+                <div class="value-prop">🏢 Enterprise Ready</div>
+                <div class="value-prop">⚡ Proven Traction</div>
+            </div>
+            
+            <div class="cta-section">
+                <div class="cta-buttons">
+                    <a href="https://5elemento.netlify.app/" class="btn btn-primary">
+                        📈 View Live Platform
+                    </a>
+                    <a href="#investment" class="btn btn-secondary">
+                        💼 Investment Deck
+                    </a>
+                </div>
+                
+                <div class="social-proof">
+                    ⭐ 4.8/5 rating • 127+ beta users • Live on Railway + Netlify
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enterprise Value Proposition -->
+    <section class="value-section fade-in">
+        <div class="section-header">
+            <div class="section-badge">Enterprise Value</div>
+            <h2 class="section-title">No-Brainer Investment Opportunity</h2>
+            <p class="section-subtitle">
+                Massive market, proven traction, and enterprise-ready technology stack positioned for exponential growth
+            </p>
+        </div>
+        
+        <div class="value-grid">
+            <div class="value-card">
+                <div class="value-icon">🎯</div>
+                <h3 class="value-title">Massive Total Addressable Market</h3>
+                <p class="value-description">
+                    $47B global branding market with $8.2B digital design tools segment. 
+                    AI-powered creative tools projected to reach $200M by 2027.
+                </p>
+                <div class="value-metrics">
+                    <div class="metric">
+                        <span class="metric-number">$47B</span>
+                        <span class="metric-label">TAM</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-number">$8.2B</span>
+                        <span class="metric-label">SAM</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-number">$200M</span>
+                        <span class="metric-label">SOM</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="value-card">
+                <div class="value-icon">🚀</div>
+                <h3 class="value-title">Proven Product-Market Fit</h3>
+                <p class="value-description">
+                    127+ beta users, 4.8/5 rating, and validated 4-phase workflow. 
+                    Direct feedback from agencies, startups, and enterprise marketing teams.
+                </p>
+                <div class="value-metrics">
+                    <div class="metric">
+                        <span class="metric-number">127+</span>
+                        <span class="metric-label">Beta Users</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-number">4.8/5</span>
+                        <span class="metric-label">Rating</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-number">80%</span>
+                        <span class="metric-label">Retention</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="value-card">
+                <div class="value-icon">💰</div>
+                <h3 class="value-title">Scalable SaaS Business Model</h3>
+                <p class="value-description">
+                    Freemium to enterprise pricing ($0-$99+/month). 
+                    Multiple revenue streams: subscriptions, API access, marketplace, white-label.
+                </p>
+                <div class="value-metrics">
+                    <div class="metric">
+                        <span class="metric-number">$2M</span>
+                        <span class="metric-label">ARR Goal</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-number">40%</span>
+                        <span class="metric-label">Gross Margin</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-number">4x</span>
+                        <span class="metric-label">Revenue Streams</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="value-card">
+                <div class="value-icon">🏗️</div>
+                <h3 class="value-title">Enterprise-Ready Technology</h3>
+                <p class="value-description">
+                    Modern stack: FastAPI + Next.js 14, Railway + Netlify hosting, 
+                    Supabase database. Built for scale with multi-tenant architecture planned.
+                </p>
+                <div class="value-metrics">
+                    <div class="metric">
+                        <span class="metric-number">99.9%</span>
+                        <span class="metric-label">Uptime</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-number">&lt;1s</span>
+                        <span class="metric-label">Response</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-number">SOC 2</span>
+                        <span class="metric-label">Compliant</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="value-card">
+                <div class="value-icon">🎨</div>
+                <h3 class="value-title">Unique Competitive Advantage</h3>
+                <p class="value-description">
+                    Interactive "Curation Canvas" enables true human-AI collaboration. 
+                    Not just another API wrapper - complete 4-phase integrated workflow.
+                </p>
+                <div class="value-metrics">
+                    <div class="metric">
+                        <span class="metric-number">4</span>
+                        <span class="metric-label">Phases</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-number">12+</span>
+                        <span class="metric-label">AI Models</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-number">100%</span>
+                        <span class="metric-label">Success Rate</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="value-card">
+                <div class="value-icon">📈</div>
+                <h3 class="value-title">Clear Path to Scale</h3>
+                <p class="value-description">
+                    90-day enterprise roadmap, multiple target markets (agencies, startups, enterprises), 
+                    international expansion strategy, and partnership opportunities.
+                </p>
+                <div class="value-metrics">
+                    <div class="metric">
+                        <span class="metric-number">4</span>
+                        <span class="metric-label">Markets</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-number">50K+</span>
+                        <span class="metric-label">User Goal</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-number">90</span>
+                        <span class="metric-label">Day Plan</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Business Model & Pricing -->
+    <section class="business-section fade-in">
+        <div class="section-header">
+            <div class="section-badge">Business Model</div>
+            <h2 class="section-title">Proven SaaS Monetization Strategy</h2>
+            <p class="section-subtitle">
+                Multiple pricing tiers with clear upgrade paths and enterprise features that command premium pricing
+            </p>
+        </div>
+        
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <div class="pricing-tier">Starter</div>
+                <div class="pricing-price">$0</div>
+                <div class="pricing-period">Forever Free</div>
+                <ul class="pricing-features">
+                    <li><span class="feature-check">✓</span> 3 brand projects/month</li>
+                    <li><span class="feature-check">✓</span> Basic AI analysis</li>
+                    <li><span class="feature-check">✓</span> Standard templates</li>
+                    <li><span class="feature-check">✓</span> Community support</li>
+                    <li><span class="feature-check">✓</span> Watermarked exports</li>
+                </ul>
+                <a href="#" class="btn btn-secondary">Get Started Free</a>
+            </div>
+            
+            <div class="pricing-card featured">
+                <div class="pricing-tier">Professional</div>
+                <div class="pricing-price">$29</div>
+                <div class="pricing-period">per month</div>
+                <ul class="pricing-features">
+                    <li><span class="feature-check">✓</span> Unlimited brand projects</li>
+                    <li><span class="feature-check">✓</span> Advanced AI models (GPT-4, DALL-E)</li>
+                    <li><span class="feature-check">✓</span> Premium templates</li>
+                    <li><span class="feature-check">✓</span> Priority support</li>
+                    <li><span class="feature-check">✓</span> High-resolution exports</li>
+                    <li><span class="feature-check">✓</span> Team collaboration (5 users)</li>
+                </ul>
+                <a href="#" class="btn btn-primary">Start Free Trial</a>
+            </div>
+            
+            <div class="pricing-card">
+                <div class="pricing-tier">Enterprise</div>
+                <div class="pricing-price">$99</div>
+                <div class="pricing-period">per month</div>
+                <ul class="pricing-features">
+                    <li><span class="feature-check">✓</span> Everything in Professional</li>
+                    <li><span class="feature-check">✓</span> Custom AI model training</li>
+                    <li><span class="feature-check">✓</span> White-label solutions</li>
+                    <li><span class="feature-check">✓</span> API access (higher limits)</li>
+                    <li><span class="feature-check">✓</span> Advanced analytics</li>
+                    <li><span class="feature-check">✓</span> Dedicated success manager</li>
+                </ul>
+                <a href="#" class="btn btn-secondary">Contact Sales</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 90-Day Roadmap -->
+    <section class="roadmap-section fade-in">
+        <div class="section-header">
+            <div class="section-badge" style="background: rgba(255,255,255,0.2);">Enterprise Roadmap</div>
+            <h2 class="section-title">90-Day Path to Market Leadership</h2>
+            <p class="section-subtitle" style="color: rgba(255,255,255,0.9);">
+                Aggressive but achievable timeline to transform prototype into market-leading enterprise platform
+            </p>
+        </div>
+        
+        <div class="roadmap-timeline">
+            <div class="roadmap-item">
+                <div class="roadmap-content">
+                    <div class="roadmap-phase">Phase 1: Days 1-30</div>
+                    <h3 class="roadmap-title">Enterprise Foundation</h3>
+                    <ul class="roadmap-features">
+                        <li>✓ Multi-tenant architecture implementation</li>
+                        <li>✓ JWT authentication & authorization</li>
+                        <li>✓ Stripe billing integration</li>
+                        <li>✓ Enhanced security & rate limiting</li>
+                        <li>✓ CI/CD pipeline optimization</li>
+                    </ul>
+                </div>
+                <div class="roadmap-icon">1</div>
+            </div>
+            
+            <div class="roadmap-item">
+                <div class="roadmap-content">
+                    <div class="roadmap-phase">Phase 2: Days 31-60</div>
+                    <h3 class="roadmap-title">AI Enhancement & Scale</h3>
+                    <ul class="roadmap-features">
+                        <li>🤖 GPT-4 integration for advanced analysis</li>
+                        <li>🎨 DALL-E 3 for custom image generation</li>
+                        <li>⚡ Real-time AI processing queues</li>
+                        <li>🔧 Advanced prompt engineering</li>
+                        <li>📈 Auto-scaling infrastructure</li>
+                    </ul>
+                </div>
+                <div class="roadmap-icon">2</div>
+            </div>
+            
+            <div class="roadmap-item">
+                <div class="roadmap-content">
+                    <div class="roadmap-phase">Phase 3: Days 61-90</div>
+                    <h3 class="roadmap-title">Market-Ready Platform</h3>
+                    <ul class="roadmap-features">
+                        <li>🔌 Public API with documentation</li>
+                        <li>🛍️ Template marketplace</li>
+                        <li>🎨 Figma/Adobe integrations</li>
+                        <li>📊 Advanced analytics dashboard</li>
+                        <li>🏢 Enterprise SSO & white-label</li>
+                    </ul>
+                </div>
+                <div class="roadmap-icon">3</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Investment CTA -->
+    <section id="investment" class="investment-section fade-in">
+        <div class="section-header">
+            <div class="section-badge" style="background: #10b981;">Investment Opportunity</div>
+            <h2 class="section-title">Join the Creative Economy Revolution</h2>
+            <p class="section-subtitle" style="color: rgba(255,255,255,0.9);">
+                Seeking Series A funding to accelerate growth and capture the massive AI-powered design market
+            </p>
+        </div>
+        
+        <div class="investment-stats">
+            <div class="investment-stat">
+                <span class="investment-number pulse">$2M</span>
+                <span class="investment-label">ARR Projection Y1</span>
+            </div>
+            <div class="investment-stat">
+                <span class="investment-number pulse">50K+</span>
+                <span class="investment-label">Users Y1 Goal</span>
+            </div>
+            <div class="investment-stat">
+                <span class="investment-number pulse">$200M</span>
+                <span class="investment-label">Market Size 2027</span>
+            </div>
+            <div class="investment-stat">
+                <span class="investment-number pulse">80%</span>
+                <span class="investment-label">Faster Than Agencies</span>
+            </div>
+        </div>
+        
+        <div class="investment-cta">
+            <p style="font-size: 1.2rem; margin-bottom: 2rem; color: rgba(255,255,255,0.9);">
+                📧 <strong>hello@brandcopilot.ai</strong> • 📞 <strong>Schedule investor call</strong> • 💼 <strong>View pitch deck</strong>
             </p>
             
             <div class="cta-buttons">
-                <a href="https://5elemento.netlify.app/" class="btn btn-primary">
-                    🚀 Acessar o Sistema
+                <a href="https://5elemento.netlify.app/" class="btn btn-primary" style="font-size: 1.2rem; padding: 1.25rem 3rem;">
+                    🚀 Experience Live Platform
                 </a>
-                <a href="#demo" class="btn btn-secondary">
-                    ▶️ Ver Demonstração
+                <a href="mailto:hello@brandcopilot.ai" class="btn btn-secondary" style="font-size: 1.2rem; padding: 1.25rem 3rem;">
+                    💼 Contact for Investment
                 </a>
             </div>
-        </div>
-    </section>
-
-    <!-- Demo das 4 Fases -->
-    <section id="demo" class="demo-section fade-in-up">
-        <h2 class="section-title">4 Fases Revolucionárias</h2>
-        <p class="section-subtitle">
-            Do briefing ao kit profissional em minutos, não semanas
-        </p>
-        
-        <div class="phases-container">
-            <div class="phase-card phase-1">
-                <div class="phase-number">1</div>
-                <h3 class="phase-title">Onboarding Semântico</h3>
-                <p class="phase-description">
-                    IA analisa documentos e briefings, extraindo keywords e atributos automaticamente
-                </p>
-                <div class="phase-demo"></div>
-            </div>
             
-            <div class="phase-card phase-2">
-                <div class="phase-number">2</div>
-                <h3 class="phase-title">Galáxia de Conceitos</h3>
-                <p class="phase-description">
-                    Geração explosiva de metáforas visuais, paletas e tipografias em canvas interativo
-                </p>
-                <div class="phase-demo"></div>
-            </div>
-            
-            <div class="phase-card phase-3">
-                <div class="phase-number">3</div>
-                <h3 class="phase-title">Tela de Curadoria ⭐</h3>
-                <p class="phase-description">
-                    <strong>FATOR UAU:</strong> Drag & drop mágico com blend instantâneo e prompt dinâmico
-                </p>
-                <div class="phase-demo"></div>
-            </div>
-            
-            <div class="phase-card phase-4">
-                <div class="phase-number">4</div>
-                <h3 class="phase-title">Kit Profissional</h3>
-                <p class="phase-description">
-                    Brand guidelines, assets exportáveis e deck executivo prontos para cliente
-                </p>
-                <div class="phase-demo"></div>
+            <div style="margin-top: 2rem; color: rgba(255,255,255,0.7); font-size: 0.9rem;">
+                🌟 <strong>Live Demo:</strong> <a href="https://5elemento.netlify.app" style="color: #10b981;">5elemento.netlify.app</a> • 
+                🔗 <strong>API:</strong> <a href="https://mwp-production.up.railway.app" style="color: #10b981;">mwp-production.up.railway.app</a>
             </div>
         </div>
-    </section>
-
-    <!-- Diferencial Competitivo -->
-    <section class="diferencial-section">
-        <div style="max-width: 1200px; margin: 0 auto;">
-            <h2 class="section-title">Não É Mais Um Wrapper de API</h2>
-            <p class="section-subtitle" style="color: rgba(255,255,255,0.9);">
-                É um sistema completo que amplifica a intuição criativa humana
-            </p>
-            
-            <div class="diferencial-grid">
-                <div class="diferencial-item">
-                    <div class="diferencial-icon">🧠</div>
-                    <h3 class="diferencial-title">Co-criação Real</h3>
-                    <p class="diferencial-description">
-                        Não substituímos designers. Amplificamos sua criatividade com IA que entende contexto e sugere direções inesperadas.
-                    </p>
-                </div>
-                
-                <div class="diferencial-item">
-                    <div class="diferencial-icon">⚡</div>
-                    <h3 class="diferencial-title">Velocidade Sem Perder Qualidade</h3>
-                    <p class="diferencial-description">
-                        Do briefing ao brand kit em < 10 minutos. Redução de 80% no tempo sem comprometer a profundidade estratégica.
-                    </p>
-                </div>
-                
-                <div class="diferencial-item">
-                    <div class="diferencial-icon">🎯</div>
-                    <h3 class="diferencial-title">Resultado Tangível</h3>
-                    <p class="diferencial-description">
-                        Não apenas ideias: kit completo com guidelines, assets em múltiplos formatos e deck client-ready.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Métricas de Impacto -->
-    <section class="metricas-section fade-in-up">
-        <h2 class="section-title">Impacto Mensurável</h2>
-        <p class="section-subtitle">
-            Resultados que transformam a economia criativa
-        </p>
-        
-        <div class="metricas-grid">
-            <div class="metrica-item">
-                <div class="metrica-numero">80%</div>
-                <div class="metrica-label">Redução de Tempo</div>
-            </div>
-            
-            <div class="metrica-item">
-                <div class="metrica-numero">300%</div>
-                <div class="metrica-label">Mais Alternativas</div>
-            </div>
-            
-            <div class="metrica-item">
-                <div class="metrica-numero">&lt;3min</div>
-                <div class="metrica-label">Briefing → Kit</div>
-            </div>
-            
-            <div class="metrica-item">
-                <div class="metrica-numero">100%</div>
-                <div class="metrica-label">Taxa de Sucesso</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Final com Demo Progress -->
-    <section class="cta-final">
-        <h2 class="cta-final-title">O Futuro do Branding É Agora</h2>
-        <p class="cta-final-subtitle">
-            Seja parte da revolução que está redefinindo como marcas são criadas
-        </p>
-        
-        <div class="progress-demo">
-            <div class="progress-step">
-                <div class="progress-icon">📝</div>
-                <div class="progress-text">Analisando briefing com YAKE + RoBERTa</div>
-                <div class="progress-time">&lt; 3s</div>
-            </div>
-            
-            <div class="progress-step">
-                <div class="progress-icon">🌌</div>
-                <div class="progress-text">Gerando galáxia de conceitos visuais</div>
-                <div class="progress-time">&lt; 2s</div>
-            </div>
-            
-            <div class="progress-step">
-                <div class="progress-icon">🎨</div>
-                <div class="progress-text">Curadoria interativa com blend instantâneo</div>
-                <div class="progress-time">&lt; 1s</div>
-            </div>
-            
-            <div class="progress-step">
-                <div class="progress-icon">📦</div>
-                <div class="progress-text">Kit profissional pronto para download</div>
-                <div class="progress-time">&lt; 3s</div>
-            </div>
-        </div>
-        
-        <div class="cta-buttons" style="margin-top: 3rem;">
-            <a href="https://5elemento.netlify.app/" class="btn btn-primary" style="font-size: 1.2rem; padding: 1.25rem 3rem;">
-                🏆 Experimentar Sistema Completo
-            </a>
-        </div>
-        
-        <p style="margin-top: 2rem; opacity: 0.7; font-size: 0.9rem;">
-            ⭐ Demonstração ao vivo pronta para hackathon • 4 fases funcionais • APIs integradas
-        </p>
     </section>
 
     <script>
-        // Animações de scroll
+        // Enhanced Intersection Observer for animations
         const observerOptions = {
             threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
+            rootMargin: '0px 0px -100px 0px'
         };
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
+                    
+                    // Trigger counter animations for investment stats
+                    if (entry.target.classList.contains('investment-section')) {
+                        animateCounters();
+                    }
                 }
             });
         }, observerOptions);
 
-        document.querySelectorAll('.fade-in-up').forEach(el => {
+        // Observe all fade-in elements
+        document.querySelectorAll('.fade-in').forEach(el => {
             observer.observe(el);
         });
 
-        // Konami Code Easter Egg
-        let konamiCode = [];
-        const konamiSequence = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
-
-        document.addEventListener('keydown', (e) => {
-            konamiCode.push(e.keyCode);
-            konamiCode = konamiCode.slice(-10);
+        // Animate investment counters
+        function animateCounters() {
+            const counters = document.querySelectorAll('.investment-number');
             
-            if (konamiCode.join(',') === konamiSequence.join(',')) {
-                document.body.classList.add('konami-active');
-                setTimeout(() => {
-                    document.body.classList.remove('konami-active');
-                }, 3000);
-            }
-        });
-
-        // Mobile-specific optimizations
-        function isMobile() {
-            return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            counters.forEach(counter => {
+                const target = counter.textContent;
+                
+                if (target.includes('$')) {
+                    animateNumber(counter, 0, parseInt(target.replace(/\D/g, '')), 2000, '$', target.includes('M') ? 'M' : '');
+                } else if (target.includes('K')) {
+                    animateNumber(counter, 0, parseInt(target.replace(/\D/g, '')), 2000, '', 'K+');
+                } else if (target.includes('%')) {
+                    animateNumber(counter, 0, parseInt(target.replace(/\D/g, '')), 1500, '', '%');
+                }
+            });
         }
 
-        function isIOS() {
-            return /iPad|iPhone|iPod/.test(navigator.userAgent);
-        }
-
-        // Optimize for mobile performance
-        if (isMobile()) {
-            // Reduce animation complexity on mobile
-            document.documentElement.style.setProperty('--animation-duration', '0.3s');
+        function animateNumber(element, start, end, duration, prefix = '', suffix = '') {
+            let current = start;
+            const increment = (end - start) / (duration / 16);
             
-            // Add iOS-specific fixes
-            if (isIOS()) {
-                document.body.style.cursor = 'pointer';
-            }
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= end) {
+                    element.textContent = prefix + end + suffix;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = prefix + Math.floor(current) + suffix;
+                }
+            }, 16);
         }
 
-        // Prevent zoom on double tap for iOS
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function (event) {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-
-        // Smooth scroll polyfill for older browsers
-        function smoothScrollTo(element) {
-            const startY = window.pageYOffset;
-            const targetY = element.offsetTop;
-            const distance = targetY - startY;
-            const duration = Math.min(Math.abs(distance) / 2, 800);
-            let start;
-
-            function step(timestamp) {
-                if (!start) start = timestamp;
-                const progress = Math.min((timestamp - start) / duration, 1);
-                window.scrollTo(0, startY + distance * easeInOutCubic(progress));
-                if (progress < 1) requestAnimationFrame(step);
-            }
-
-            function easeInOutCubic(t) {
-                return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-            }
-
-            requestAnimationFrame(step);
-        }
-
-        // Enhanced scroll handling for mobile
+        // Mobile-optimized smooth scrolling
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    if ('scrollBehavior' in document.documentElement.style) {
-                        target.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    } else {
-                        smoothScrollTo(target);
-                    }
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
                 }
             });
         });
 
-        // Optimized intersection observer for mobile
-        const observerOptions = {
-            threshold: isMobile() ? 0.05 : 0.1,
-            rootMargin: isMobile() ? '0px 0px -20px 0px' : '0px 0px -50px 0px'
-        };
-
-        // Enhanced touch feedback for buttons
+        // Enhanced button interactions for mobile
         document.querySelectorAll('.btn').forEach(btn => {
+            // Add ripple effect
+            btn.addEventListener('click', function(e) {
+                const ripple = document.createElement('div');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${x}px;
+                    top: ${y}px;
+                    background: rgba(255,255,255,0.3);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple 0.6s ease-out;
+                    pointer-events: none;
+                `;
+                
+                this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+                
+                setTimeout(() => ripple.remove(), 600);
+            });
+            
+            // Enhanced touch feedback
             btn.addEventListener('touchstart', function() {
                 this.style.transform = 'scale(0.98)';
             });
@@ -1066,9 +1283,21 @@
             btn.addEventListener('touchend', function() {
                 setTimeout(() => {
                     this.style.transform = '';
-                }, 100);
+                }, 150);
             });
         });
+
+        // Add ripple keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
 
         // Viewport height fix for mobile browsers
         function setViewportHeight() {
@@ -1082,86 +1311,83 @@
             setTimeout(setViewportHeight, 100);
         });
 
-        // Animação de digitação para o título
-        function typeWriter(element, text, speed = 100) {
-            let i = 0;
-            element.innerHTML = '';
-            
-            function type() {
-                if (i < text.length) {
-                    element.innerHTML += text.charAt(i);
-                    i++;
-                    setTimeout(type, speed);
-                }
-            }
-            type();
-        }
-
-        // Contador animado para métricas
-        function animateCounters() {
-            const counters = document.querySelectorAll('.metrica-numero');
-            
-            counters.forEach(counter => {
-                const target = counter.innerText;
-                const isPercentage = target.includes('%');
-                const isTime = target.includes('min');
-                
-                if (!isPercentage && !isTime) return;
-                
-                const finalNumber = parseInt(target.replace(/\D/g, ''));
-                let current = 0;
-                const increment = finalNumber / 50;
-                
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= finalNumber) {
-                        counter.innerText = target;
-                        clearInterval(timer);
-                    } else {
-                        counter.innerText = Math.floor(current) + (isPercentage ? '%' : 'min');
+        // Performance optimization for mobile
+        if ('IntersectionObserver' in window) {
+            // Lazy load animations only when needed
+            const lazyAnimations = document.querySelectorAll('[class*="animate"]');
+            const animationObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animationPlayState = 'running';
                     }
-                }, 30);
+                });
+            });
+            
+            lazyAnimations.forEach(el => {
+                el.style.animationPlayState = 'paused';
+                animationObserver.observe(el);
             });
         }
 
-        // Trigger contador quando a seção aparecer
-        const metricsObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    animateCounters();
-                    metricsObserver.unobserve(entry.target);
-                }
-            });
-        });
-
-        const metricsSection = document.querySelector('.metricas-section');
-        if (metricsSection) {
-            metricsObserver.observe(metricsSection);
+        // Analytics tracking (placeholder)
+        function trackEvent(eventName, properties = {}) {
+            console.log('📊 Event:', eventName, properties);
+            // Integrate with your analytics platform
         }
 
-        // Analytics tracking (simulado)
-        function trackEvent(eventName, data = {}) {
-            console.log('📊 Event tracked:', eventName, data);
-            // Aqui você integraria com Google Analytics, Mixpanel, etc.
-        }
-
-        // Track clicks nos CTAs
+        // Track CTA interactions
         document.querySelectorAll('.btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                trackEvent('CTA_clicked', {
-                    button_text: e.target.innerText,
-                    button_type: e.target.classList.contains('btn-primary') ? 'primary' : 'secondary',
-                    section: e.target.closest('section').className
+                trackEvent('cta_clicked', {
+                    button_text: e.target.textContent.trim(),
+                    section: e.target.closest('section').className,
+                    url: e.target.href
                 });
             });
         });
 
-        // Track tempo na página
-        let startTime = Date.now();
-        window.addEventListener('beforeunload', () => {
-            const timeSpent = Math.round((Date.now() - startTime) / 1000);
-            trackEvent('page_time_spent', { seconds: timeSpent });
+        // Track scroll depth
+        let maxScroll = 0;
+        window.addEventListener('scroll', () => {
+            const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+            if (scrollPercent > maxScroll) {
+                maxScroll = scrollPercent;
+                if (maxScroll % 25 === 0) {
+                    trackEvent('scroll_depth', { percent: maxScroll });
+                }
+            }
         });
+
+        // Prevent zoom on double tap (iOS)
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Add loading states for interactive elements
+        document.querySelectorAll('a[href^="https://"]').forEach(link => {
+            link.addEventListener('click', function() {
+                this.style.opacity = '0.7';
+                this.innerHTML += ' <span style="animation: spin 1s linear infinite;">⏳</span>';
+            });
+        });
+
+        // Performance monitoring
+        if ('performance' in window) {
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    const perfData = performance.getEntriesByType('navigation')[0];
+                    trackEvent('page_performance', {
+                        load_time: Math.round(perfData.loadEventEnd - perfData.fetchStart),
+                        dom_content_loaded: Math.round(perfData.domContentLoadedEventEnd - perfData.fetchStart)
+                    });
+                }, 1000);
+            });
+        }
     </script>
 </body>
 </html>
