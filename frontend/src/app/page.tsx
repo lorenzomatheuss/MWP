@@ -6,7 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
-import { Upload, FileText, CheckCircle, AlertCircle, ArrowRight, Sliders, Target, Heart, Zap, Palette, Wand2, Download, Eye, Package, FileDown, Image, Monitor } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, ArrowRight, Sliders, Target, Heart, Zap, Palette, Wand2, Download, Eye, Package, FileDown, Image, Monitor, Sparkles, Atom, Cpu, Layers, Zap as Lightning, Orbit } from 'lucide-react';
+import { QuantumParticles, NeuralNetwork, HolographicText, QuantumButton, DataStream } from '@/components/ui/quantum-effects';
+import { QuantumSlider } from '@/components/ui/quantum-slider';
 
 interface Project {
   id: string;
@@ -655,35 +657,90 @@ export default function HomePage() {
 
   const renderStepIndicator = () => {
     const steps = [
-      { number: 1, title: 'Upload', completed: currentStep > 1 },
-      { number: 2, title: 'Análise', completed: currentStep > 2 },
-      { number: 3, title: 'Geração', completed: currentStep > 3 },
-      { number: 4, title: 'Export', completed: false }
+      { number: 1, title: 'Quantum Upload', icon: Atom, completed: currentStep > 1, color: 'from-brand-gold to-brand-gold-light' },
+      { number: 2, title: 'Neural Analysis', icon: Cpu, completed: currentStep > 2, color: 'from-brand-neon-cyan to-brand-quantum-blue' },
+      { number: 3, title: 'AI Generation', icon: Sparkles, completed: currentStep > 3, color: 'from-brand-neon-purple to-brand-neon-pink' },
+      { number: 4, title: 'Holographic Export', icon: Orbit, completed: false, color: 'from-brand-neon-pink to-brand-gold' }
     ];
 
     return (
-      <div className="flex justify-center mb-6 sm:mb-8 px-4">
-        <div className="flex items-center space-x-2 sm:space-x-4 overflow-x-auto pb-2">
-          {steps.map((step, index) => (
-            <div key={step.number} className="flex items-center flex-shrink-0">
-              <div className={`
-                w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold
-                ${currentStep === step.number 
-                  ? 'bg-primary text-primary-foreground' 
-                  : step.completed 
-                  ? 'bg-green-600 text-white' 
-                  : 'bg-muted text-muted-foreground'
-                }
-              `}>
-                {step.completed ? <CheckCircle size={16} className="sm:w-5 sm:h-5" /> : step.number}
-              </div>
-              <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium hidden sm:inline">{step.title}</span>
-              <span className="ml-1 text-xs font-medium sm:hidden">{step.title.charAt(0)}</span>
-              {index < steps.length - 1 && (
-                <ArrowRight className="ml-2 sm:ml-4 text-muted-foreground flex-shrink-0" size={12} />
-              )}
-            </div>
-          ))}
+      <div className="relative mb-8 sm:mb-12">
+        <DataStream className="h-1" lineCount={3} />
+        <div className="flex justify-center px-4">
+          <div className="flex items-center space-x-4 sm:space-x-8 overflow-x-auto pb-4 relative z-10">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              const isActive = currentStep === step.number;
+              const isCompleted = step.completed;
+              
+              return (
+                <div key={step.number} className="flex items-center flex-shrink-0">
+                  <div className="flex flex-col items-center">
+                    <div 
+                      className={`
+                        relative w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-sm sm:text-base font-heading font-bold
+                        transition-all duration-500 transform-gpu cursor-pointer
+                        ${
+                          isActive 
+                            ? `bg-gradient-to-br ${step.color} shadow-quantum animate-neon-pulse scale-110` 
+                            : isCompleted 
+                            ? 'bg-gradient-to-br from-green-400 to-green-600 shadow-neon-cyan scale-105' 
+                            : 'bg-brand-glass-white backdrop-blur-quantum border border-brand-glass-white hover:border-brand-neon-cyan'
+                        }
+                      `}
+                      onClick={() => navigateToStep(step.number)}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                      ) : isActive ? (
+                        <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-black animate-pulse" />
+                      ) : (
+                        <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-foreground/60" />
+                      )}
+                      
+                      {/* Holographic glow effect */}
+                      {isActive && (
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent animate-holographic-shimmer" />
+                      )}
+                    </div>
+                    
+                    <span className={`
+                      mt-2 text-xs sm:text-sm font-heading font-medium text-center max-w-[80px] sm:max-w-none
+                      ${
+                        isActive 
+                          ? 'text-brand-gold text-shadow-glow' 
+                          : isCompleted 
+                          ? 'text-green-400' 
+                          : 'text-muted-foreground'
+                      }
+                    `}>
+                      {step.title}
+                    </span>
+                  </div>
+                  
+                  {/* Neural connection line */}
+                  {index < steps.length - 1 && (
+                    <div className="flex-1 mx-4 sm:mx-6 relative">
+                      <div className={`
+                        h-0.5 rounded-full transition-all duration-1000
+                        ${
+                          isCompleted 
+                            ? 'bg-gradient-to-r from-green-400 to-brand-neon-cyan animate-data-stream' 
+                            : 'bg-brand-glass-white'
+                        }
+                      `} />
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-brand-neon-cyan animate-neon-pulse" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        
+        {/* Background neural network */}
+        <div className="absolute inset-0 opacity-10">
+          <NeuralNetwork nodeCount={12} />
         </div>
       </div>
     );
@@ -691,12 +748,16 @@ export default function HomePage() {
 
   // Render das etapas
   const renderStep1 = () => (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Gerenciamento de Projetos */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Projeto</CardTitle>
-          <CardDescription>Selecione ou crie um projeto para organizar seu trabalho</CardDescription>
+      <Card variant="glass" className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/10 via-transparent to-brand-neon-cyan/10" />
+        <CardHeader className="relative z-10">
+          <CardTitle className="flex items-center gap-3">
+            <Layers className="w-6 h-6 text-brand-gold" />
+            <HolographicText>Quantum Projects</HolographicText>
+          </CardTitle>
+          <CardDescription>Initialize your brand creation matrix</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -728,14 +789,20 @@ export default function HomePage() {
       </Card>
 
       {/* Upload de Documentos */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload size={24} />
-            Upload de Documento
+      <Card variant="quantum" className="relative overflow-hidden morphing-card">
+        <div className="absolute inset-0 opacity-20">
+          <NeuralNetwork nodeCount={8} />
+        </div>
+        <CardHeader className="relative z-20">
+          <CardTitle className="flex items-center gap-3">
+            <div className="relative">
+              <Atom className="w-7 h-7 text-brand-neon-cyan animate-spin" style={{ animationDuration: '8s' }} />
+              <div className="absolute inset-0 w-7 h-7 border-2 border-brand-gold rounded-full animate-ping" />
+            </div>
+            <HolographicText>Neural Document Analysis</HolographicText>
           </CardTitle>
           <CardDescription>
-            Faça upload de briefings, apresentações ou documentos estratégicos
+            Upload strategic documents for quantum semantic processing
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -847,10 +914,14 @@ export default function HomePage() {
       </Card>
 
       {/* Entrada Manual como Fallback */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Entrada Manual</CardTitle>
-          <CardDescription>Ou insira o briefing manualmente</CardDescription>
+      <Card variant="neon" className="relative overflow-hidden">
+        <DataStream className="absolute inset-0" lineCount={3} />
+        <CardHeader className="relative z-10">
+          <CardTitle className="flex items-center gap-3">
+            <Lightning className="w-6 h-6 text-brand-neon-cyan" />
+            <HolographicText>Manual Input Protocol</HolographicText>
+          </CardTitle>
+          <CardDescription>Direct neural interface for brand data injection</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -860,66 +931,50 @@ export default function HomePage() {
               onChange={(e) => setBrief(e.target.value)}
               rows={6}
             />
-            <Button 
+            <QuantumButton
+              variant="quantum"
+              size="lg"
               onClick={handleAnalyze} 
               disabled={isLoading || !brief.trim() || !selectedProject}
-              className="w-full"
+              className="w-full font-bold text-lg"
             >
-              {isLoading ? 'Analisando...' : 'Analisar Briefing'}
-            </Button>
+              {isLoading ? (
+                <>
+                  <Cpu className="w-5 h-5 mr-2 animate-spin" />
+                  ANALYZING QUANTUM DATA...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  INITIATE NEURAL ANALYSIS
+                </>
+              )}
+            </QuantumButton>
           </div>
         </CardContent>
       </Card>
     </div>
   );
 
-  // Componente Slider personalizado
-  const CustomSlider = ({ 
-    label, 
-    leftLabel, 
-    rightLabel, 
-    value, 
-    onChange 
-  }: {
-    label: string;
-    leftLabel: string;
-    rightLabel: string;
-    value: number;
-    onChange: (value: number) => void;
-  }) => (
-    <div className="space-y-3">
-      <h4 className="font-medium text-center">{label}</h4>
-      <div className="relative">
-        <div className="flex justify-between text-xs text-gray-500 mb-2">
-          <span>{leftLabel}</span>
-          <span>{rightLabel}</span>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full h-2 bg-gradient-to-r from-blue-200 to-purple-200 rounded-lg appearance-none slider"
-        />
-        <div className="flex justify-center mt-1">
-          <span className="text-sm font-medium">{value}%</span>
-        </div>
-      </div>
-    </div>
-  );
 
   // Render da Tela 2 - Análise Estratégica
   const renderStep2 = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target size={24} />
-            Análise Estratégica Automática
+    <div className="space-y-8">
+      <Card variant="quantum" className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-neon-cyan/10 via-transparent to-brand-quantum-blue/10" />
+        <div className="absolute inset-0 opacity-30">
+          <NeuralNetwork nodeCount={15} />
+        </div>
+        <CardHeader className="relative z-20">
+          <CardTitle className="flex items-center gap-3">
+            <div className="relative">
+              <Cpu className="w-7 h-7 text-brand-neon-cyan" />
+              <div className="absolute -inset-2 border border-brand-neon-cyan rounded-lg animate-neon-pulse" />
+            </div>
+            <HolographicText>Neural Strategic Analysis</HolographicText>
           </CardTitle>
           <CardDescription>
-            Processamento semântico do briefing para extrair propósito, valores e personalidade
+            Quantum semantic processing for brand essence extraction
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -1024,69 +1079,95 @@ export default function HomePage() {
       </Card>
 
       {/* Espectros de Tensões Criativas */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sliders size={24} />
-            Espectros de Tensões Criativas
+      <Card variant="morphing" className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-neon-purple/10 via-transparent to-brand-neon-pink/10" />
+        <DataStream className="absolute inset-0 opacity-30" lineCount={4} />
+        <CardHeader className="relative z-10">
+          <CardTitle className="flex items-center gap-3">
+            <div className="relative">
+              <Orbit className="w-7 h-7 text-brand-neon-purple animate-spin" style={{ animationDuration: '12s' }} />
+              <Sliders className="w-4 h-4 text-brand-gold absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+            </div>
+            <HolographicText>Creative Tension Matrix</HolographicText>
           </CardTitle>
           <CardDescription>
-            Mapeamento visual dos eixos estratégicos para guiar decisões de design
+            Quantum mapping of strategic design vectors
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <CustomSlider
-              label="Estilo Visual"
-              leftLabel="Tradicional"
-              rightLabel="Contemporâneo"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+            <QuantumSlider
+              label="Visual Spectrum"
+              leftLabel="Traditional"
+              rightLabel="Contemporary"
               value={strategicAnalysis.creative_tensions.traditional_contemporary}
               onChange={(value) => updateCreativeTension('traditional_contemporary', value)}
+              color="gold"
             />
             
-            <CustomSlider
-              label="Abordagem"
-              leftLabel="Corporativo"
-              rightLabel="Criativo"
+            <QuantumSlider
+              label="Approach Vector"
+              leftLabel="Corporate"
+              rightLabel="Creative"
               value={strategicAnalysis.creative_tensions.corporate_creative}
               onChange={(value) => updateCreativeTension('corporate_creative', value)}
+              color="cyan"
             />
             
-            <CustomSlider
-              label="Complexidade"
-              leftLabel="Minimalista"
-              rightLabel="Detalhado"
+            <QuantumSlider
+              label="Complexity Matrix"
+              leftLabel="Minimal"
+              rightLabel="Detailed"
               value={strategicAnalysis.creative_tensions.minimal_detailed}
               onChange={(value) => updateCreativeTension('minimal_detailed', value)}
+              color="purple"
             />
             
-            <CustomSlider
-              label="Tom"
-              leftLabel="Sério"
-              rightLabel="Descontraído"
+            <QuantumSlider
+              label="Tone Frequency"
+              leftLabel="Serious"
+              rightLabel="Playful"
               value={strategicAnalysis.creative_tensions.serious_playful}
               onChange={(value) => updateCreativeTension('serious_playful', value)}
+              color="pink"
             />
           </div>
 
-          <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-medium mb-2">Resumo Estratégico</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <strong>Estilo:</strong> {strategicAnalysis.creative_tensions.traditional_contemporary > 50 ? 'Contemporâneo' : 'Tradicional'} 
-                ({strategicAnalysis.creative_tensions.traditional_contemporary}%)
-              </div>
-              <div>
-                <strong>Abordagem:</strong> {strategicAnalysis.creative_tensions.corporate_creative > 50 ? 'Criativo' : 'Corporativo'} 
-                ({strategicAnalysis.creative_tensions.corporate_creative}%)
-              </div>
-              <div>
-                <strong>Complexidade:</strong> {strategicAnalysis.creative_tensions.minimal_detailed > 50 ? 'Detalhado' : 'Minimalista'} 
-                ({strategicAnalysis.creative_tensions.minimal_detailed}%)
-              </div>
-              <div>
-                <strong>Tom:</strong> {strategicAnalysis.creative_tensions.serious_playful > 50 ? 'Descontraído' : 'Sério'} 
-                ({strategicAnalysis.creative_tensions.serious_playful}%)
+          <div className="mt-8 p-6 bg-gradient-to-br from-brand-glass-white to-transparent backdrop-blur-quantum rounded-2xl border border-brand-glass-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/5 via-brand-neon-cyan/5 to-brand-neon-purple/5 animate-holographic-shimmer" />
+            <div className="relative z-10">
+              <h4 className="font-heading font-bold mb-4 text-center">
+                <HolographicText>Strategic Quantum Matrix</HolographicText>
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-sans">
+                <div className="p-3 rounded-xl bg-brand-glass-white backdrop-blur-sm">
+                  <span className="text-brand-gold font-bold">Visual:</span>{' '}
+                  <span className="text-foreground font-medium">
+                    {strategicAnalysis.creative_tensions.traditional_contemporary > 50 ? 'Contemporary' : 'Traditional'}
+                  </span>
+                  <span className="text-muted-foreground ml-2">({strategicAnalysis.creative_tensions.traditional_contemporary}%)</span>
+                </div>
+                <div className="p-3 rounded-xl bg-brand-glass-white backdrop-blur-sm">
+                  <span className="text-brand-neon-cyan font-bold">Approach:</span>{' '}
+                  <span className="text-foreground font-medium">
+                    {strategicAnalysis.creative_tensions.corporate_creative > 50 ? 'Creative' : 'Corporate'}
+                  </span>
+                  <span className="text-muted-foreground ml-2">({strategicAnalysis.creative_tensions.corporate_creative}%)</span>
+                </div>
+                <div className="p-3 rounded-xl bg-brand-glass-white backdrop-blur-sm">
+                  <span className="text-brand-neon-purple font-bold">Complexity:</span>{' '}
+                  <span className="text-foreground font-medium">
+                    {strategicAnalysis.creative_tensions.minimal_detailed > 50 ? 'Detailed' : 'Minimal'}
+                  </span>
+                  <span className="text-muted-foreground ml-2">({strategicAnalysis.creative_tensions.minimal_detailed}%)</span>
+                </div>
+                <div className="p-3 rounded-xl bg-brand-glass-white backdrop-blur-sm">
+                  <span className="text-brand-neon-pink font-bold">Tone:</span>{' '}
+                  <span className="text-foreground font-medium">
+                    {strategicAnalysis.creative_tensions.serious_playful > 50 ? 'Playful' : 'Serious'}
+                  </span>
+                  <span className="text-muted-foreground ml-2">({strategicAnalysis.creative_tensions.serious_playful}%)</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1095,13 +1176,16 @@ export default function HomePage() {
             <Button variant="outline" onClick={() => setCurrentStep(1)}>
               Voltar
             </Button>
-            <Button 
+            <QuantumButton
+              variant="quantum"
+              size="lg"
               onClick={validateStrategicAnalysis}
-              className="flex-1"
+              className="flex-1 font-bold"
               disabled={!strategicAnalysis.purpose || strategicAnalysis.values.length === 0}
             >
-              Validar e Prosseguir para Geração Visual
-            </Button>
+              <Sparkles className="w-5 h-5 mr-2" />
+              ACTIVATE VISUAL GENESIS
+            </QuantumButton>
           </div>
         </CardContent>
       </Card>
@@ -1110,15 +1194,22 @@ export default function HomePage() {
 
   // Render da Tela 3 - Geração Visual
   const renderStep3 = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wand2 size={24} />
-            Geração Visual Automática
+    <div className="space-y-8">
+      <Card variant="morphing" className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-neon-purple/15 via-brand-neon-pink/10 to-brand-gold/15" />
+        <div className="absolute inset-0 opacity-20">
+          <QuantumParticles particleCount={20} colors={['#8A2BE2', '#FF69B4', '#FFD700']} />
+        </div>
+        <CardHeader className="relative z-20">
+          <CardTitle className="flex items-center gap-3">
+            <div className="relative">
+              <Sparkles className="w-7 h-7 text-brand-neon-purple animate-pulse" />
+              <Wand2 className="w-4 h-4 text-brand-gold absolute -top-1 -right-1 animate-bounce" />
+            </div>
+            <HolographicText>AI Visual Genesis</HolographicText>
           </CardTitle>
           <CardDescription>
-            Criação de 3 conceitos visuais distintos usando Stable Diffusion XL baseados na análise estratégica
+            Stable Diffusion XL quantum rendering based on strategic neural patterns
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -1293,26 +1384,32 @@ export default function HomePage() {
                 <Button variant="outline" onClick={() => setCurrentStep(2)}>
                   Voltar
                 </Button>
-                <Button 
+                <QuantumButton
+                  variant="quantum"
+                  size="lg"
                   onClick={finalizeSelectedConcept}
-                  className="flex-1"
+                  className="flex-1 font-bold"
                   disabled={!selectedConcept}
                 >
-                  Finalizar e Gerar Assets Profissionais
-                </Button>
+                  <Orbit className="w-5 h-5 mr-2" />
+                  MATERIALIZE HOLOGRAPHIC ASSETS
+                </QuantumButton>
               </div>
             </div>
           ) : (
             <div className="text-center py-8">
               <Palette className="mx-auto text-gray-400 mb-4" size={48} />
               <p className="text-gray-600">Aguardando geração de conceitos visuais...</p>
-              <Button 
+              <QuantumButton
+                variant="neon"
+                size="lg"
                 onClick={generateVisualConcepts}
-                className="mt-4"
+                className="mt-6 font-bold"
                 disabled={!strategicAnalysis.validated}
               >
-                Gerar Conceitos Agora
-              </Button>
+                <Lightning className="w-5 h-5 mr-2" />
+                GENERATE QUANTUM CONCEPTS
+              </QuantumButton>
             </div>
           )}
         </CardContent>
@@ -1322,15 +1419,24 @@ export default function HomePage() {
 
   // Render da Tela 4 - Export Profissional
   const renderStep4 = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package size={24} />
-            Export Profissional
+    <div className="space-y-8">
+      <Card variant="quantum" className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/20 via-brand-neon-cyan/10 to-brand-neon-purple/15" />
+        <div className="absolute inset-0 opacity-25">
+          <NeuralNetwork nodeCount={25} />
+        </div>
+        <DataStream className="absolute inset-0 opacity-40" lineCount={6} />
+        <CardHeader className="relative z-20">
+          <CardTitle className="flex items-center gap-3">
+            <div className="relative">
+              <Package className="w-7 h-7 text-brand-gold" />
+              <div className="absolute -inset-1 border-2 border-brand-neon-cyan rounded-lg animate-neon-pulse" />
+              <Orbit className="w-3 h-3 text-brand-neon-purple absolute -top-1 -right-1 animate-spin" />
+            </div>
+            <HolographicText>Holographic Export Matrix</HolographicText>
           </CardTitle>
           <CardDescription>
-            Geração automática de brand guidelines, assets em múltiplos formatos e deck de apresentação
+            Quantum materialization of brand assets across dimensional formats
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -1403,13 +1509,25 @@ export default function HomePage() {
                 <Button variant="outline" onClick={() => setCurrentStep(3)}>
                   Voltar
                 </Button>
-                <Button 
+                <QuantumButton
+                  variant="quantum"
+                  size="lg"
                   onClick={generateBrandKit}
                   disabled={!brandName.trim() || isGeneratingKit}
-                  className="flex-1"
+                  className="flex-1 font-bold text-lg"
                 >
-                  {isGeneratingKit ? 'Gerando Kit Profissional...' : 'Gerar Kit de Marca Completo'}
-                </Button>
+                  {isGeneratingKit ? (
+                    <>
+                      <Atom className="w-6 h-6 mr-3 animate-spin" />
+                      MATERIALIZING QUANTUM KIT...
+                    </>
+                  ) : (
+                    <>
+                      <Orbit className="w-6 h-6 mr-3" />
+                      GENERATE HOLOGRAPHIC BRAND KIT
+                    </>
+                  )}
+                </QuantumButton>
               </div>
 
               {/* Status de Geração */}
@@ -1441,10 +1559,24 @@ export default function HomePage() {
           ) : (
             <div className="space-y-6">
               {/* Header do Kit Gerado */}
-              <div className="text-center bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6">
-                <CheckCircle className="mx-auto text-green-600 mb-4" size={48} />
-                <h2 className="text-2xl font-bold mb-2">Kit de Marca Completo</h2>
-                <p className="text-gray-600">Brand guidelines, assets e apresentação prontos para uso profissional</p>
+              <div className="relative text-center bg-gradient-to-br from-brand-gold/20 via-brand-neon-cyan/10 to-brand-neon-purple/20 rounded-2xl p-8 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-400/10 to-brand-neon-cyan/10 animate-holographic-shimmer" />
+                <div className="relative z-10">
+                  <div className="relative inline-block mb-6">
+                    <CheckCircle className="w-16 h-16 text-green-400 animate-neon-pulse" />
+                    <div className="absolute inset-0 w-16 h-16 border-2 border-green-400 rounded-full animate-ping" />
+                  </div>
+                  <HolographicText className="text-3xl sm:text-4xl font-bold mb-4">
+                    QUANTUM KIT MATERIALIZED
+                  </HolographicText>
+                  <p className="text-lg text-muted-foreground/90 font-sans leading-relaxed">
+                    <span className="text-brand-gold font-semibold">Holographic brand guidelines</span>, 
+                    <span className="text-brand-neon-cyan font-semibold">quantum assets</span> and 
+                    <span className="text-brand-neon-purple font-semibold">neural presentations</span> 
+                    ready for dimensional deployment
+                  </p>
+                </div>
+                <DataStream className="absolute inset-0 opacity-30" lineCount={4} />
               </div>
 
               {/* Downloads Principais */}
@@ -1602,34 +1734,76 @@ export default function HomePage() {
   );
 
   return (
-    <main className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
-      <div className="text-center px-4">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">5º Elemento</h1>
-        <p className="text-muted-foreground text-sm sm:text-base">4 elementos criam a identidade. O 5º cria domínio de mercado.</p>
-        
-        {/* Indicador de status da API */}
-        <div className="flex items-center justify-center gap-2 mt-2">
-          <div className={`w-2 h-2 rounded-full ${
-            apiHealth === 'healthy' ? 'bg-green-500' : 
-            apiHealth === 'unhealthy' ? 'bg-red-500' : 
-            'bg-yellow-500'
-          }`} />
-          <span className="text-xs text-muted-foreground">
-            {apiHealth === 'healthy' ? 'Sistema Operacional' : 
-             apiHealth === 'unhealthy' ? 'Sistema Offline' : 
-             'Verificando Sistema...'}
-          </span>
+    <main className="relative min-h-screen overflow-hidden">
+      {/* Quantum Particles Background */}
+      <QuantumParticles className="opacity-30" particleCount={30} />
+      
+      <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8 sm:space-y-12 relative z-10">
+        {/* Hero Section */}
+        <div className="text-center px-4 py-8 sm:py-12 relative">
+          <div className="relative inline-block">
+            <HolographicText className="display-responsive mb-4" glitch>
+              5º ELEMENTO
+            </HolographicText>
+            
+            {/* Orbiting elements */}
+            <div className="absolute -inset-8 animate-quantum-float">
+              <div className="absolute top-0 left-0 w-3 h-3 bg-brand-gold rounded-full animate-particle-drift" />
+              <div className="absolute top-0 right-0 w-2 h-2 bg-brand-neon-cyan rounded-full animate-particle-drift" style={{ animationDelay: '2s' }} />
+              <div className="absolute bottom-0 left-0 w-2 h-2 bg-brand-neon-purple rounded-full animate-particle-drift" style={{ animationDelay: '4s' }} />
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-brand-neon-pink rounded-full animate-particle-drift" style={{ animationDelay: '6s' }} />
+            </div>
+          </div>
+          
+          <p className="text-lg sm:text-xl text-muted-foreground/90 font-sans max-w-2xl mx-auto leading-relaxed">
+            <span className="text-brand-gold font-medium">4 elementos</span> criam a identidade. 
+            <span className="text-brand-neon-cyan font-medium">O 5º</span> cria 
+            <span className="text-brand-neon-purple font-bold">domínio de mercado</span>.
+          </p>
+          
+          {/* API Status with futuristic design */}
+          <div className="flex items-center justify-center gap-3 mt-6">
+            <div className={`relative w-3 h-3 rounded-full ${
+              apiHealth === 'healthy' ? 'bg-green-400 shadow-neon-cyan animate-neon-pulse' : 
+              apiHealth === 'unhealthy' ? 'bg-red-400 shadow-[0_0_10px_#ff0000]' : 
+              'bg-yellow-400 animate-pulse'
+            }`}>
+              <div className={`absolute inset-0 rounded-full animate-ping ${
+                apiHealth === 'healthy' ? 'bg-green-400' : 
+                apiHealth === 'unhealthy' ? 'bg-red-400' : 
+                'bg-yellow-400'
+              }`} />
+            </div>
+            <span className="text-sm font-heading tracking-wide">
+              <span className="text-brand-gold">QUANTUM SYSTEM:</span>{' '}
+              <span className={`font-bold ${
+                apiHealth === 'healthy' ? 'text-green-400' : 
+                apiHealth === 'unhealthy' ? 'text-red-400' : 
+                'text-yellow-400'
+              }`}>
+                {apiHealth === 'healthy' ? 'ONLINE' : 
+                 apiHealth === 'unhealthy' ? 'OFFLINE' : 
+                 'INITIALIZING...'}
+              </span>
+            </span>
+          </div>
+          
+          {/* Floating data streams */}
+          <DataStream className="absolute inset-0 opacity-20" lineCount={5} />
         </div>
-      </div>
 
-      {renderStepIndicator()}
+        {renderStepIndicator()}
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-0">
-        {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
-        {currentStep === 4 && renderStep4()}
-      </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-0 relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/5 via-transparent to-brand-neon-cyan/5 rounded-3xl blur-3xl" />
+          
+          <div className="relative z-10">
+            {currentStep === 1 && renderStep1()}
+            {currentStep === 2 && renderStep2()}
+            {currentStep === 3 && renderStep3()}
+            {currentStep === 4 && renderStep4()}
+          </div>
+        </div>
 
       {error && (
         <div className="max-w-4xl mx-auto px-4 sm:px-0">

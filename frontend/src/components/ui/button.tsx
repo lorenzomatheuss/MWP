@@ -5,20 +5,22 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-heading font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden transform-gpu",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-quantum hover:shadow-neon-cyan hover:-translate-y-1",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg hover:shadow-red-500/25",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border-2 border-brand-glass-white bg-transparent backdrop-blur-quantum hover:bg-brand-glass-white hover:border-brand-neon-cyan text-foreground hover:text-brand-neon-cyan transition-all duration-500",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-        gold: "bg-brand-gold text-brand-deep-black hover:bg-brand-gold/90 font-semibold",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 backdrop-blur-quantum",
+        ghost: "hover:bg-brand-glass-white hover:text-brand-neon-cyan backdrop-blur-sm transition-all duration-300",
+        link: "text-primary underline-offset-4 hover:underline hover:text-brand-neon-cyan",
+        quantum: "bg-quantum-gradient text-black font-bold shadow-quantum hover:shadow-neon-purple hover:scale-105 before:absolute before:inset-0 before:bg-holographic before:opacity-0 hover:before:opacity-20 before:transition-opacity before:duration-300",
+        neon: "bg-transparent border-2 border-brand-neon-cyan text-brand-neon-cyan hover:bg-brand-neon-cyan hover:text-black shadow-neon-cyan hover:shadow-neon-purple transition-all duration-300",
+        glass: "bg-brand-glass-white backdrop-blur-quantum border border-brand-glass-white text-foreground hover:bg-opacity-20 hover:border-brand-neon-cyan shadow-glass",
       },
       size: {
         default: "h-10 px-4 py-2",
