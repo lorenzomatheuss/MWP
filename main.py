@@ -7,7 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client, Client
 from dotenv import load_dotenv
-# from transformers import pipeline  # Removido para deploy leve
 import yake
 import re
 import requests
@@ -21,6 +20,10 @@ import numpy as np
 import docx
 import PyPDF2
 import io
+import asyncio
+import aiofiles
+from openai import AsyncOpenAI
+import hashlib
 
 # Carregar variáveis de ambiente
 load_dotenv()
@@ -50,6 +53,9 @@ app.add_middleware(
 url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_ANON_KEY")
 
+# Configuração do OpenAI
+openai_api_key = os.environ.get("OPENAI_API_KEY")
+
 # Detectar ambiente de teste
 is_testing = os.environ.get("PYTEST_CURRENT_TEST") is not None or "pytest" in str(os.environ.get("_", ""))
 
@@ -59,15 +65,19 @@ if not is_testing:
         raise ValueError("SUPABASE_URL não configurada. Configure a variável de ambiente no Railway.")
     if not key or key == "SUA_CHAVE_ANON_SUPABASE_AQUI":
         raise ValueError("SUPABASE_ANON_KEY não configurada. Configure a variável de ambiente no Railway.")
+    if not openai_api_key or openai_api_key == "SUA_OPENAI_API_KEY_AQUI":
+        raise ValueError("OPENAI_API_KEY não configurada. Configure a variável de ambiente no Railway.")
 
-# Inicializar Supabase client (será mockado em testes)
+# Inicializar clientes
 try:
     supabase: Client = create_client(url or "https://test.supabase.co", key or "test-key")
+    openai_client = AsyncOpenAI(api_key=openai_api_key or "test-key")
 except Exception as e:
     if is_testing:
-        # Em testes, criar um mock client básico
+        # Em testes, criar mock clients básicos
         from unittest.mock import Mock
         supabase = Mock()
+        openai_client = Mock()
     else:
         raise e
 
@@ -93,18 +103,40 @@ except Exception as e:
     brand_attributes_classifier = None
     sentiment_analyzer = None
 
-# URLs pré-geradas para demonstração (estratégia anti-falha de API)
-PRE_GENERATED_METAPHOR_IMAGES = [
-    "https://images.unsplash.com/photo-1554755229-ca4470e22238?q=80&w=1974&auto=format&fit=crop", # café e tecnologia
-    "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1974&auto=format&fit=crop", # café e natureza
-    "https://images.unsplash.com/photo-1621358351138-294cb503f3a6?q=80&w=1974&auto=format&fit=crop", # café e minimalismo
-    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop", # escritório moderno
-    "https://images.unsplash.com/photo-1518709268805-4e9042af2176?q=80&w=2025&auto=format&fit=crop", # geometria abstrata
-    "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1974&auto=format&fit=crop", # tecnologia futurista
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop", # natureza minimalista
-    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop", # arte abstrata
-    "https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?q=80&w=1935&auto=format&fit=crop", # conceito premium
-    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=2070&auto=format&fit=crop"  # design criativo
+# Cache simples em memória para reduzir custos da API
+content_cache = {}
+CACHE_EXPIRY = 3600  # 1 hora
+
+def get_cache_key(content_type: str, data: dict) -> str:
+    """Gera chave única para cache baseada no conteúdo"""
+    content_str = json.dumps(data, sort_keys=True)
+    return f"{content_type}_{hashlib.md5(content_str.encode()).hexdigest()}"
+
+def get_cached_content(cache_key: str) -> Optional[Any]:
+    """Recupera conteúdo do cache se ainda válido"""
+    if cache_key in content_cache:
+        cached_item = content_cache[cache_key]
+        if datetime.now().timestamp() - cached_item['timestamp'] < CACHE_EXPIRY:
+            return cached_item['content']
+        else:
+            del content_cache[cache_key]
+    return None
+
+def set_cached_content(cache_key: str, content: Any):
+    """Salva conteúdo no cache"""
+    content_cache[cache_key] = {
+        'content': content,
+        'timestamp': datetime.now().timestamp()
+    }
+
+# URLs de fallback para casos de erro na API
+FALLBACK_METAPHOR_IMAGES = [
+    "https://images.unsplash.com/photo-1554755229-ca4470e22238?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1621358351138-294cb503f3a6?q=80&w=1974&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1518709268805-4e9042af2176?q=80&w=2025&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1974&auto=format&fit=crop"
 ]
 
 # Funções para parsing de documentos
@@ -246,49 +278,167 @@ def calculate_overall_confidence(sections: List[Dict[str, Any]]) -> float:
     
     return min(weighted_confidence / total_weight, 1.0)
 
+# Funções OpenAI para geração de conteúdo
+async def generate_image_with_dalle(prompt: str, size: str = "1024x1024", quality: str = "standard") -> str:
+    """Gera imagem usando DALL-E 3"""
+    try:
+        if is_testing:
+            # Retorna URL de fallback para testes
+            return FALLBACK_METAPHOR_IMAGES[0]
+        
+        cache_key = get_cache_key("dalle_image", {"prompt": prompt, "size": size, "quality": quality})
+        cached_result = get_cached_content(cache_key)
+        if cached_result:
+            return cached_result
+        
+        response = await openai_client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size=size,
+            quality=quality,
+            n=1
+        )
+        
+        image_url = response.data[0].url
+        set_cached_content(cache_key, image_url)
+        return image_url
+        
+    except Exception as e:
+        print(f"Erro ao gerar imagem com DALL-E: {e}")
+        # Fallback para URL do Unsplash
+        return random.choice(FALLBACK_METAPHOR_IMAGES)
+
+async def generate_text_with_gpt4(prompt: str, max_tokens: int = 1000, temperature: float = 0.7) -> str:
+    """Gera texto usando GPT-4"""
+    try:
+        if is_testing:
+            return f"Texto gerado para: {prompt[:50]}..."
+        
+        cache_key = get_cache_key("gpt4_text", {"prompt": prompt, "max_tokens": max_tokens, "temperature": temperature})
+        cached_result = get_cached_content(cache_key)
+        if cached_result:
+            return cached_result
+        
+        response = await openai_client.chat.completions.create(
+            model="gpt-4-turbo-preview",
+            messages=[
+                {"role": "system", "content": "Você é um especialista em branding e marketing que cria conteúdo profissional e criativo."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+        
+        generated_text = response.choices[0].message.content
+        set_cached_content(cache_key, generated_text)
+        return generated_text
+        
+    except Exception as e:
+        print(f"Erro ao gerar texto com GPT-4: {e}")
+        return f"Conteúdo baseado em: {prompt[:100]}..."
+
+async def analyze_brief_with_gpt4(text: str, keywords: List[str], attributes: List[str]) -> Dict[str, Any]:
+    """Análise estratégica avançada usando GPT-4"""
+    prompt = f"""
+    Analise este briefing de marca e extraia insights estratégicos profundos:
+
+    BRIEFING:
+    {text}
+
+    KEYWORDS IDENTIFICADAS: {', '.join(keywords)}
+    ATRIBUTOS IDENTIFICADOS: {', '.join(attributes)}
+
+    Por favor, retorne uma análise estruturada em JSON com:
+    1. "purpose": Propósito principal da marca (1-2 frases claras)
+    2. "values": Lista de 3-5 valores core da marca
+    3. "personality_traits": Lista de 4-6 traços de personalidade únicos
+    4. "target_audience": Descrição detalhada do público-alvo
+    5. "competitive_advantage": Principal diferencial competitivo
+    6. "brand_voice": Tom de voz recomendado
+    7. "creative_direction": Direcionamento criativo sugerido
+
+    Responda APENAS com JSON válido.
+    """
+    
+    try:
+        response_text = await generate_text_with_gpt4(prompt, max_tokens=1500, temperature=0.3)
+        
+        # Tentar fazer parse do JSON
+        try:
+            return json.loads(response_text)
+        except json.JSONDecodeError:
+            # Se não conseguir fazer parse, extrair manualmente os dados
+            return extract_analysis_from_text(response_text, keywords, attributes)
+            
+    except Exception as e:
+        print(f"Erro na análise com GPT-4: {e}")
+        return analyze_strategic_elements(text, keywords, attributes)
+
+def extract_analysis_from_text(text: str, keywords: List[str], attributes: List[str]) -> Dict[str, Any]:
+    """Extrai dados de análise de texto não-estruturado"""
+    return {
+        'purpose': f"Desenvolver uma marca {', '.join(attributes[:2])} que conecte com {', '.join(keywords[:2])}",
+        'values': ['Qualidade', 'Inovação', 'Confiança'],
+        'personality_traits': ['Profissional', 'Confiável', 'Inovador'],
+        'target_audience': "Público interessado em soluções modernas e confiáveis",
+        'competitive_advantage': "Combinação única de qualidade e inovação",
+        'brand_voice': "Profissional e acessível",
+        'creative_direction': "Design moderno com elementos que transmitem confiança"
+    }
+
 # Funções para geração da galáxia de conceitos
-def generate_visual_metaphors(keywords: List[str], attributes: List[str], demo_mode: bool = True) -> List[Dict[str, str]]:
-    """Gera metáforas visuais usando os keywords e atributos"""
+async def generate_visual_metaphors(keywords: List[str], attributes: List[str], demo_mode: bool = False) -> List[Dict[str, str]]:
+    """Gera metáforas visuais usando DALL-E 3"""
     metaphors = []
     
-    if demo_mode and PRE_GENERATED_METAPHOR_IMAGES:
-        # Modo demonstração: usa URLs pré-geradas para velocidade máxima
-        pre_generated_metaphors = [
-            {"prompt": f"uma folha de {keywords[0] if keywords else 'café'} brotando de circuitos tecnológicos", "image_url": PRE_GENERATED_METAPHOR_IMAGES[0]},
-            {"prompt": f"{keywords[0] if keywords else 'natureza'} em geometria minimalista com elementos holográficos", "image_url": PRE_GENERATED_METAPHOR_IMAGES[1]},
-            {"prompt": f"{keywords[1] if len(keywords) > 1 else 'conceito'} dourado em superfície de mármore negro", "image_url": PRE_GENERATED_METAPHOR_IMAGES[2]},
-            {"prompt": f"elementos de {', '.join(keywords[:2])} explodindo em caleidoscópio de cores", "image_url": PRE_GENERATED_METAPHOR_IMAGES[3]},
-            {"prompt": f"fusão orgânica de {keywords[0] if keywords else 'identidade'} com natureza", "image_url": PRE_GENERATED_METAPHOR_IMAGES[4]},
-            {"prompt": f"conceito de {keywords[0] if keywords else 'marca'} em splash de tinta aquarela", "image_url": PRE_GENERATED_METAPHOR_IMAGES[5]}
-        ]
-        return pre_generated_metaphors[:6]
+    # Gerar prompts criativos baseados nas palavras-chave e atributos
+    metaphor_prompts = []
     
-    # Modo produção: gera metáforas textuais (para APIs de imagem reais)
-    for keyword in keywords[:3]:  # Limitar para não sobrecarregar
+    for keyword in keywords[:2]:  # Limitar para controlar custos
         for attribute in attributes[:2]:
             if attribute in ["sustentável", "ecológico", "natural"]:
-                prompt = f"uma folha de {keyword} brotando de circuitos tecnológicos"
+                prompt = f"abstract visual metaphor: {keyword} growing from technological circuits, organic meets digital, professional brand imagery, clean composition"
             elif attribute in ["moderno", "futurista", "tecnológico"]:
-                prompt = f"{keyword} em geometria minimalista com elementos holográficos"
+                prompt = f"minimalist geometric representation of {keyword}, holographic elements, futuristic brand concept, clean modern design"
             elif attribute in ["premium", "luxuoso"]:
-                prompt = f"{keyword} dourado em superfície de mármore negro"
+                prompt = f"luxury brand concept: golden {keyword} on black marble surface, elegant premium design, sophisticated composition"
             elif attribute in ["vibrante", "colorido"]:
-                prompt = f"{keyword} explodindo em caleidoscópio de cores"
+                prompt = f"vibrant explosion of {keyword} elements in kaleidoscope pattern, colorful brand energy, dynamic composition"
             elif attribute in ["jovem", "familiar"]:
-                prompt = f"{keyword} em ilustração playful com formas orgânicas"
+                prompt = f"playful illustration of {keyword} with organic shapes, friendly brand personality, approachable design"
             else:
-                prompt = f"{keyword} {attribute} em composição artística abstrata"
+                prompt = f"artistic abstract composition representing {keyword} with {attribute} characteristics, professional brand concept"
             
-            metaphors.append({"prompt": prompt, "image_url": ""})
+            metaphor_prompts.append(prompt)
     
-    # Adicionar algumas metáforas genéricas criativas
-    metaphors.extend([
-        {"prompt": f"conceito de {keywords[0] if keywords else 'marca'} em splash de tinta aquarela", "image_url": ""},
-        {"prompt": f"elementos de {', '.join(keywords[:2])} em mosaico geométrico", "image_url": ""},
-        {"prompt": f"fusão orgânica de {keywords[0] if keywords else 'identidade'} com natureza", "image_url": ""}
-    ])
+    # Adicionar prompts genéricos criativos
+    if keywords:
+        metaphor_prompts.extend([
+            f"watercolor splash representing {keywords[0]} brand concept, artistic fluid design, creative brand identity",
+            f"geometric mosaic pattern incorporating {', '.join(keywords[:2])}, modern brand elements, structured composition",
+            f"organic fusion of {keywords[0]} with natural elements, sustainable brand concept, harmonious design"
+        ])
     
-    return metaphors[:6]  # Limitar a 6 metáforas
+    # Limitar a 6 metáforas para controlar custos
+    selected_prompts = metaphor_prompts[:6]
+    
+    # Gerar imagens usando DALL-E 3
+    for prompt in selected_prompts:
+        try:
+            image_url = await generate_image_with_dalle(prompt, size="1024x1024", quality="standard")
+            metaphors.append({
+                "prompt": prompt,
+                "image_url": image_url
+            })
+        except Exception as e:
+            print(f"Erro ao gerar metáfora visual: {e}")
+            # Fallback para URL do Unsplash
+            metaphors.append({
+                "prompt": prompt,
+                "image_url": random.choice(FALLBACK_METAPHOR_IMAGES)
+            })
+    
+    return metaphors
 
 def generate_color_palettes(attributes: List[str]) -> List[Dict[str, Any]]:
     """Gera paletas de cores baseadas nos atributos"""
@@ -531,52 +681,101 @@ def image_to_base64(image: Image.Image) -> str:
     buffer.seek(0)
     return base64.b64encode(buffer.getvalue()).decode()
 
-def mock_logo_generation(text: str, palette: list) -> str:
+async def generate_logo_with_dalle(text: str, palette: list, style_attributes: List[str] = []) -> str:
     """
-    Gera uma imagem de logótipo simulada usando Pillow e retorna uma string Base64.
+    Gera um logótipo profissional usando DALL-E 3
     """
-    # Cria uma imagem base com uma cor de fundo da paleta
-    bg_color = random.choice(palette)
-    image = Image.new('RGB', (512, 512), color=bg_color)
-    draw = ImageDraw.Draw(image)
-
-    # Desenha formas geométricas aleatórias com outras cores da paleta
-    for _ in range(random.randint(2, 4)):
-        fill_color = random.choice(palette)
-        # Evita que a forma tenha a mesma cor que o fundo
-        while fill_color == bg_color:
-            fill_color = random.choice(palette)
-
-        x1 = random.randint(50, 200)
-        y1 = random.randint(50, 200)
-        x2 = random.randint(300, 450)
-        y2 = random.randint(300, 450)
-
-        # Escolhe entre retângulo ou elipse
-        if random.random() > 0.5:
-            draw.rectangle([x1, y1, x2, y2], fill=fill_color)
-        else:
-            draw.ellipse([x1, y1, x2, y2], fill=fill_color)
-
-    # Adiciona o texto (iniciais ou uma palavra)
     try:
-        # Tenta carregar uma fonte padrão (pode precisar de ajuste dependendo do ambiente)
-        font = ImageFont.truetype("arial.ttf", size=100)
-    except IOError:
-        font = ImageFont.load_default()
+        # Criar prompt baseado no texto e atributos
+        style_descriptors = []
+        if "moderno" in style_attributes:
+            style_descriptors.append("modern")
+        if "minimalista" in style_attributes:
+            style_descriptors.append("minimalist")
+        if "premium" in style_attributes:
+            style_descriptors.append("luxury")
+        if "jovem" in style_attributes:
+            style_descriptors.append("youthful")
+        if "tecnológico" in style_attributes:
+            style_descriptors.append("tech-focused")
+        
+        # Se não tiver descritores específicos, usar genérico
+        if not style_descriptors:
+            style_descriptors = ["professional", "clean"]
+        
+        # Extrair cores dominantes da paleta para o prompt
+        primary_color = palette[0] if palette else "#000000"
+        secondary_color = palette[1] if len(palette) > 1 else "#FFFFFF"
+        
+        logo_prompt = f"""
+        Professional logo design for '{text}', {' and '.join(style_descriptors)} style, 
+        vector art, clean composition, primary color {primary_color}, secondary color {secondary_color},
+        simple and memorable, suitable for business use, white background, high contrast
+        """
+        
+        # Gerar logo usando DALL-E
+        logo_url = await generate_image_with_dalle(logo_prompt.strip(), size="1024x1024", quality="standard")
+        
+        # Se conseguiu gerar, converter para base64 para consistência com o sistema atual
+        try:
+            response = requests.get(logo_url, timeout=10)
+            if response.status_code == 200:
+                img_base64 = base64.b64encode(response.content).decode()
+                return f"data:image/png;base64,{img_base64}"
+            else:
+                return logo_url  # Retorna URL se não conseguir baixar
+        except Exception as e:
+            print(f"Erro ao converter logo para base64: {e}")
+            return logo_url  # Retorna URL se não conseguir converter
+            
+    except Exception as e:
+        print(f"Erro ao gerar logo com DALL-E: {e}")
+        # Fallback para versão geométrica simples
+        return create_fallback_logo(text, palette)
 
-    text_color = random.choice(palette)
-    while text_color == bg_color: # Garante o contraste
-        text_color = random.choice(palette)
-
-    draw.text((256, 256), text.upper(), font=font, anchor="mm", fill=text_color)
-
-    # Converte a imagem para Base64
-    buffered = BytesIO()
-    image.save(buffered, format="PNG")
-    img_str = base64.b64encode(buffered.getvalue()).decode()
-
-    return f"data:image/png;base64,{img_str}"
+def create_fallback_logo(text: str, palette: list) -> str:
+    """
+    Cria um logo fallback simples quando DALL-E falha
+    """
+    try:
+        bg_color = palette[0] if palette else "#FFFFFF"
+        text_color = palette[1] if len(palette) > 1 else "#000000"
+        
+        # Remover # das cores para usar com PIL
+        if bg_color.startswith('#'):
+            bg_color = bg_color[1:]
+        if text_color.startswith('#'):
+            text_color = text_color[1:]
+        
+        # Converter hex para RGB
+        bg_rgb = tuple(int(bg_color[i:i+2], 16) for i in (0, 2, 4))
+        text_rgb = tuple(int(text_color[i:i+2], 16) for i in (0, 2, 4))
+        
+        image = Image.new('RGB', (512, 512), color=bg_rgb)
+        draw = ImageDraw.Draw(image)
+        
+        # Desenhar uma forma geométrica simples
+        draw.ellipse([100, 100, 400, 400], outline=text_rgb, width=8)
+        
+        # Adicionar texto
+        try:
+            font = ImageFont.truetype("arial.ttf", size=60)
+        except IOError:
+            font = ImageFont.load_default()
+        
+        draw.text((256, 256), text.upper()[:3], font=font, anchor="mm", fill=text_rgb)
+        
+        # Converter para base64
+        buffered = BytesIO()
+        image.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+        
+        return f"data:image/png;base64,{img_str}"
+        
+    except Exception as e:
+        print(f"Erro no fallback logo: {e}")
+        # Último recurso - retorna URL de placeholder
+        return "https://via.placeholder.com/512x512/000000/FFFFFF?text=LOGO"
 
 async def save_curated_asset(project_id: str, brief_id: str, asset_data: Dict[str, Any], asset_type: str) -> str:
     """Salva um asset curado no banco de dados"""
@@ -843,7 +1042,7 @@ def analyze_strategic_elements(text: str, keywords: List[str], attributes: List[
             }
         }
 
-def generate_visual_concept_data(
+async def generate_visual_concept_data(
     strategic_analysis: Dict[str, Any], 
     keywords: List[str], 
     attributes: List[str],
@@ -922,10 +1121,16 @@ def generate_visual_concept_data(
         # Usar iniciais dos keywords para o texto do logótipo
         logo_text = "".join(word[0] for word in keywords[:2]) if keywords else f"C{i+1}"
 
-        # Gerar 4 variações para cada conceito
-        for _ in range(4):
-            logo_b64 = mock_logo_generation(logo_text, color_palette)
-            logo_variations.append(logo_b64)
+        # Gerar 4 variações para cada conceito usando DALL-E
+        for variation in range(4):
+            try:
+                logo_b64 = await generate_logo_with_dalle(logo_text, color_palette, attributes)
+                logo_variations.append(logo_b64)
+            except Exception as e:
+                print(f"Erro ao gerar variação {variation} do logo: {e}")
+                # Fallback para logo simples
+                logo_b64 = create_fallback_logo(logo_text, color_palette)
+                logo_variations.append(logo_b64)
         
         # Gerar elementos gráficos (placeholders)
         graphic_elements = [
@@ -933,20 +1138,38 @@ def generate_visual_concept_data(
             f"https://via.placeholder.com/100x100/{''.join(color_palette[1].split('#'))}/FFFFFF?text=Element+2"
         ]
         
-        # Gerar rationale estratégico
-        personality_str = ', '.join(strategic_analysis.get('personality_traits', [])[:2])
-        values_str = ', '.join(strategic_analysis.get('values', [])[:2])
-        
-        rationale = f"Conceito {i+1} combina {personality_str} com elementos visuais que refletem {values_str}. "
-        if style_preferences['traditional_contemporary'] > 50:
-            rationale += "Design contemporâneo com linhas limpas e tipografia moderna. "
-        else:
-            rationale += "Abordagem clássica com elementos tradicionais refinados. "
-        
-        if style_preferences['corporate_creative'] > 60:
-            rationale += "Expressão criativa balanceada com profissionalismo."
-        else:
-            rationale += "Foco em credibilidade e confiança institucional."
+        # Gerar rationale estratégico usando GPT-4
+        try:
+            personality_str = ', '.join(strategic_analysis.get('personality_traits', [])[:2])
+            values_str = ', '.join(strategic_analysis.get('values', [])[:2])
+            
+            rationale_prompt = f"""
+            Crie um rationale estratégico profissional (máximo 100 palavras) para o Conceito {i+1} de uma marca que:
+            - Possui traços de personalidade: {personality_str}
+            - Reflete os valores: {values_str}
+            - Estilo: {'contemporâneo' if style_preferences['traditional_contemporary'] > 50 else 'clássico'}
+            - Abordagem: {'criativa' if style_preferences['corporate_creative'] > 60 else 'corporativa'}
+            
+            O rationale deve explicar como o conceito visual conecta com a estratégia da marca.
+            """
+            
+            rationale = await generate_text_with_gpt4(rationale_prompt, max_tokens=150, temperature=0.6)
+        except Exception as e:
+            print(f"Erro ao gerar rationale com GPT-4: {e}")
+            # Fallback para versão simples
+            personality_str = ', '.join(strategic_analysis.get('personality_traits', [])[:2])
+            values_str = ', '.join(strategic_analysis.get('values', [])[:2])
+            
+            rationale = f"Conceito {i+1} combina {personality_str} com elementos visuais que refletem {values_str}. "
+            if style_preferences['traditional_contemporary'] > 50:
+                rationale += "Design contemporâneo com linhas limpas e tipografia moderna. "
+            else:
+                rationale += "Abordagem clássica com elementos tradicionais refinados. "
+            
+            if style_preferences['corporate_creative'] > 60:
+                rationale += "Expressão criativa balanceada com profissionalismo."
+            else:
+                rationale += "Foco em credibilidade e confiança institucional."
         
         # Gerar prompt para Stable Diffusion (simulado)
         style_prompt = f"logo design, {style_base} style, {', '.join(keywords[:3])}, "
@@ -966,7 +1189,7 @@ def generate_visual_concept_data(
     
     return concepts
 
-def generate_brand_kit_data(
+async def generate_brand_kit_data(
     brand_name: str,
     selected_concept: Dict[str, Any],
     strategic_analysis: Dict[str, Any]
@@ -998,14 +1221,44 @@ def generate_brand_kit_data(
         ]
     }
 
-    # Criar o conteúdo das diretrizes como um ficheiro de texto
-    guidelines_content = f"Brand Guidelines for {brand_name}\n\n"
-    guidelines_content += "--- Color Palette ---\n"
-    for color in assets_package['colors']:
-        guidelines_content += f"- {color['name']}: {color['hex']}\n"
-    guidelines_content += "\n--- Typography ---\n"
-    guidelines_content += f"- Title Font: {assets_package['fonts'][0]['name']}\n"
-    guidelines_content += f"- Body Font: {assets_package['fonts'][1]['name']}\n"
+    # Gerar conteúdo das diretrizes usando GPT-4
+    try:
+        guidelines_prompt = f"""
+        Crie um brand guidelines profissional para a marca "{brand_name}" baseado nos seguintes elementos:
+
+        PALETA DE CORES:
+        {chr(10).join([f"- {color['name']}: {color['hex']}" for color in assets_package['colors']])}
+
+        TIPOGRAFIA:
+        - Fonte Principal: {assets_package['fonts'][0]['name']}
+        - Fonte Secundária: {assets_package['fonts'][1]['name']}
+
+        ANÁLISE ESTRATÉGICA:
+        - Propósito: {strategic_analysis.get('purpose', 'N/A')}
+        - Valores: {', '.join(strategic_analysis.get('values', []))}
+        - Personalidade: {', '.join(strategic_analysis.get('personality_traits', []))}
+
+        Crie um documento estruturado com:
+        1. Introdução da marca
+        2. Paleta de cores com instruções de uso
+        3. Sistema tipográfico
+        4. Diretrizes de aplicação
+        5. Boas práticas
+
+        Mantenha tom profissional e informativo.
+        """
+        
+        guidelines_content = await generate_text_with_gpt4(guidelines_prompt, max_tokens=2000, temperature=0.3)
+    except Exception as e:
+        print(f"Erro ao gerar guidelines com GPT-4: {e}")
+        # Fallback para versão simples
+        guidelines_content = f"Brand Guidelines for {brand_name}\n\n"
+        guidelines_content += "--- Color Palette ---\n"
+        for color in assets_package['colors']:
+            guidelines_content += f"- {color['name']}: {color['hex']}\n"
+        guidelines_content += "\n--- Typography ---\n"
+        guidelines_content += f"- Title Font: {assets_package['fonts'][0]['name']}\n"
+        guidelines_content += f"- Body Font: {assets_package['fonts'][1]['name']}\n"
 
     guidelines_b64 = base64.b64encode(guidelines_content.encode('utf-8')).decode()
     guidelines_data_url = f"data:text/plain;charset=utf-8;base64,{guidelines_b64}"
@@ -1230,7 +1483,7 @@ async def generate_brand_kit(request: BrandKitRequest):
     """
     try:
         # Gerar kit de marca completo
-        brand_kit = generate_brand_kit_data(
+        brand_kit = await generate_brand_kit_data(
             request.brand_name,
             request.selected_concept,
             request.strategic_analysis
@@ -1268,7 +1521,7 @@ async def generate_visual_concepts(request: VisualConceptRequest):
     """
     try:
         # Gerar conceitos visuais
-        concepts = generate_visual_concept_data(
+        concepts = await generate_visual_concept_data(
             request.strategic_analysis,
             request.keywords,
             request.attributes,
@@ -1338,12 +1591,20 @@ async def strategic_analysis(request: StrategicAnalysisRequest):
         print(f"Keywords: {request.keywords}")
         print(f"Attributes: {request.attributes}")
         
-        # Realizar análise estratégica
-        strategic_data = analyze_strategic_elements(
-            request.text, 
-            request.keywords, 
-            request.attributes
-        )
+        # Realizar análise estratégica com GPT-4
+        try:
+            strategic_data = await analyze_brief_with_gpt4(
+                request.text, 
+                request.keywords, 
+                request.attributes
+            )
+        except Exception as e:
+            print(f"Erro ao usar GPT-4, usando análise local: {e}")
+            strategic_data = analyze_strategic_elements(
+                request.text, 
+                request.keywords, 
+                request.attributes
+            )
         
         # Validar resultados da análise
         if not strategic_data:
@@ -1516,8 +1777,8 @@ async def generate_galaxy(request: GalaxyGenerationRequest):
         if not request.keywords and not request.attributes:
             raise HTTPException(status_code=400, detail="Keywords ou attributes são necessários")
         
-        # 1. Gerar metáforas visuais (com modo demo para hackathon)
-        metaphors = generate_visual_metaphors(request.keywords, request.attributes, request.demo_mode)
+        # 1. Gerar metáforas visuais usando DALL-E 3
+        metaphors = await generate_visual_metaphors(request.keywords, request.attributes, request.demo_mode)
         
         # 2. Gerar paletas de cores
         color_palettes = generate_color_palettes(request.attributes)

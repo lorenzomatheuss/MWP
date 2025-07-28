@@ -66,9 +66,7 @@ pip install -r requirements.txt
 # Create .env file
 SUPABASE_URL="your_supabase_project_url"
 SUPABASE_ANON_KEY="your_supabase_anon_key"
-HUGGINGFACE_API_TOKEN="optional_huggingface_token"
-OPENAI_API_KEY="optional_openai_key"
-STABILITY_AI_KEY="optional_stability_key"
+OPENAI_API_KEY="your_openai_api_key_required"
 ```
 
 4. **Launch development server:**
@@ -121,22 +119,22 @@ npm run dev
 - ✅ **Document Upload:** PDF, DOCX parsing with strategic section analysis
 - ✅ **Keyword Extraction:** YAKE algorithm for precise terminology
 - ✅ **Brand Attributes:** 24+ categorized brand characteristics
-- ✅ **Sentiment Analysis:** RoBERTa-based emotional context
+- ✅ **GPT-4 Strategic Analysis:** Deep purpose, values, personality extraction
 - ✅ **Editable Tags:** Real-time keyword/attribute editing
-- ✅ **Strategic Analysis:** Purpose, values, personality extraction
+- ✅ **Advanced Insights:** Target audience, competitive advantage analysis
 
-**Key Technologies:** YAKE, transformers, PyPDF2, python-docx
+**Key Technologies:** OpenAI GPT-4, YAKE, PyPDF2, python-docx
 
 ### 🌌 Phase 2: Concept Galaxy
-**Visual Concept Generation**
-- ✅ **Visual Metaphors:** AI-generated conceptual imagery
+**Professional Visual Generation**
+- ✅ **DALL-E 3 Metaphors:** Unique conceptual imagery generation
 - ✅ **Smart Palettes:** Algorithm-based color harmony
 - ✅ **Typography Pairs:** Context-aware font combinations
 - ✅ **Interactive Canvas:** React Flow with zoom, pan, navigation
-- ✅ **Real-time URLs:** Unsplash integration for instant previews
-- ✅ **Demo Mode:** Pre-generated assets for demo stability
+- ✅ **Professional Logos:** DALL-E 3 generated brand marks
+- ✅ **Intelligent Caching:** Cost optimization and speed
 
-**Key Technologies:** React Flow, Unsplash API, color theory algorithms
+**Key Technologies:** OpenAI DALL-E 3, React Flow, color theory algorithms
 
 ### 🎨 Phase 3: Curation Canvas - **"WOW FACTOR"**
 **Human-AI Collaborative Design**
@@ -152,15 +150,15 @@ npm run dev
 
 ### 📦 Phase 4: Professional Brand Kit
 **Enterprise-Grade Deliverables**
-- ✅ **Complete Brand Guidelines:** Multi-page professional document
-- ✅ **Logo Variations:** Multiple formats and applications
+- ✅ **AI-Generated Guidelines:** GPT-4 crafted professional documentation
+- ✅ **DALL-E Logo Variations:** Multiple formats and applications
 - ✅ **Color Specifications:** Hex codes + usage instructions
 - ✅ **Typography System:** Font pairing with hierarchies
 - ✅ **Asset Package:** Downloadable ZIP with all resources
 - ✅ **Application Mockups:** Business cards, letterheads, web
-- ✅ **Usage Guidelines:** Professional implementation rules
+- ✅ **Strategic Rationale:** AI-powered concept explanations
 
-**Key Technologies:** Base64 encoding, ZIP generation, PDF creation
+**Key Technologies:** OpenAI GPT-4, DALL-E 3, Base64 encoding, PDF creation
 
 ---
 
@@ -186,11 +184,13 @@ npm run dev
 - **Netlify** - Frontend hosting with CDN
 
 ### **AI & Processing**
+- **OpenAI GPT-4 Turbo** - Advanced text analysis and strategic insights
+- **OpenAI DALL-E 3** - Professional image and logo generation
 - **YAKE** - Keyword extraction without training data
-- **RoBERTa** - Sentiment analysis and text understanding
-- **PIL/Pillow** - Local image processing for instant results
+- **PIL/Pillow** - Local image processing and fallback generation
 - **Color Theory Algorithms** - Harmonious palette generation
 - **Typography Pairing Logic** - Context-aware font combinations
+- **Intelligent Caching** - Cost optimization and performance boost
 
 ---
 
