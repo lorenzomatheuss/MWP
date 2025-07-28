@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useRouter } from 'next/navigation';
 import { Upload, FileText, CheckCircle, AlertCircle, ArrowRight, Sliders, Target, Heart, Zap, Palette, Wand2, Download, Eye, Package, FileDown, Image, Monitor, Sparkles, Atom, Cpu, Layers, Zap as Lightning, Orbit, Trash2, RefreshCcw, Plus, Settings, HelpCircle, MoreHorizontal } from 'lucide-react';
 import { QuantumSlider } from '@/components/ui/quantum-slider';
+import { DataStream, NeuralNetwork, QuantumParticles, HolographicText, QuantumButton } from '@/components/ui/quantum-effects';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -927,7 +928,7 @@ export default function HomePage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Excluir Projeto</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Tem certeza de que deseja excluir o projeto "{project.name}"? Esta ação não pode ser desfeita.
+                                Tem certeza de que deseja excluir o projeto &quot;{project.name}&quot;? Esta ação não pode ser desfeita.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -959,7 +960,7 @@ export default function HomePage() {
             {selectedProject && (
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                 <p className="text-sm text-primary font-medium">
-                  ✓ Projeto "{projects.find(p => p.id === selectedProject)?.name}" selecionado
+                  ✓ Projeto &quot;{projects.find(p => p.id === selectedProject)?.name}&quot; selecionado
                 </p>
               </div>
             )}

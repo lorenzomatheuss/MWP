@@ -349,10 +349,12 @@ export const DataStream: React.FC<DataStreamProps> = ({
   )
 }
 
-export default {
+const QuantumEffects = {
   QuantumParticles,
   NeuralNetwork,
   HolographicText,
   QuantumButton,
   DataStream
 }
+
+export default QuantumEffects
