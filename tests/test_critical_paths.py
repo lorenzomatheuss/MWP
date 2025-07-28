@@ -13,11 +13,11 @@ from conftest import client
 @pytest.mark.asyncio
 async def test_parse_document_endpoint_success(client):
     """Test successful document parsing endpoint"""
-    # Create a mock text file
-    text_content = b"Mock document content for testing"
+    # Create a mock text file with sufficient content (>100 chars)
+    text_content = b"Mock document content for testing with strategic objectives and detailed analysis. This document contains comprehensive information about business goals, market analysis, target audience, and strategic initiatives that need to be processed."
     
     with patch('main.extract_text_from_file') as mock_extract:
-        mock_extract.return_value = "Extracted text content"
+        mock_extract.return_value = "Extracted text content with comprehensive strategic analysis and business objectives for thorough document processing."
         
         with patch('main.analyze_document_sections') as mock_analyze:
             mock_analyze.return_value = [
@@ -33,8 +33,9 @@ async def test_parse_document_endpoint_success(client):
                 assert response.status_code == 200
                 result = response.json()
                 assert "sections" in result
-                assert "confidence" in result
-                assert "extracted_text" in result
+                assert "overall_confidence" in result
+                assert "total_words" in result
+                assert "filename" in result
 
 
 @pytest.mark.asyncio
@@ -43,9 +44,14 @@ async def test_generate_visual_concepts_endpoint(client):
     request_data = {
         "project_id": "proj123",
         "brief_id": "brief456",
+        "strategic_analysis": {
+            "target_audience": "Geração Z tech-savvy",
+            "brand_positioning": "Inovação sustentável",
+            "key_messages": ["Tecnologia verde", "Futuro responsável"]
+        },
         "keywords": ["inovação", "tecnologia"],
         "attributes": ["moderno", "futurista"],
-        "preferences": {"style": "modern", "colors": ["blue", "silver"]}
+        "style_preferences": {"modern": 8, "minimalist": 7, "tech": 9}
     }
     
     with patch('main.generate_visual_concept_data') as mock_generate:
@@ -59,7 +65,7 @@ async def test_generate_visual_concepts_endpoint(client):
         with patch('main.save_generated_assets') as mock_save:
             mock_save.return_value = True
             
-            response = client.post("/visual-concepts", json=request_data)
+            response = client.post("/generate-visual-concepts", json=request_data)
             assert response.status_code == 200
 
 
@@ -93,9 +99,10 @@ async def test_strategic_analysis_endpoint(client):
 async def test_blend_concepts_endpoint(client):
     """Test blend concepts endpoint"""
     request_data = {
-        "concept_ids": ["concept1", "concept2"],
+        "image_urls": ["https://example.com/img1.jpg", "https://example.com/img2.jpg"],
         "blend_mode": "overlay",
-        "project_id": "proj123"
+        "project_id": "proj123",
+        "brief_id": "brief123"
     }
     
     with patch('main.supabase') as mock_supabase:
@@ -143,7 +150,8 @@ async def test_generate_galaxy_endpoint(client):
         response = client.post("/generate-galaxy", json=request_data)
         assert response.status_code == 200
         result = response.json()
-        assert "galaxy_id" in result
+        assert "galaxy_data" in result
+        assert "success" in result
 
 
 @pytest.mark.asyncio
@@ -216,7 +224,7 @@ async def test_endpoints_with_database_errors(client):
         mock_generate.return_value = {"concept_id": "test"}
         
         with patch('main.save_generated_assets', side_effect=Exception("DB Error")):
-            response = client.post("/visual-concepts", json=request_data)
+            response = client.post("/generate-visual-concepts", json=request_data)
             assert response.status_code == 500
 
 
@@ -323,7 +331,7 @@ async def test_visual_concepts_comprehensive(client):
         with patch('main.save_generated_assets') as mock_save:
             mock_save.return_value = True
             
-            response = client.post("/visual-concepts", json=request_data)
+            response = client.post("/generate-visual-concepts", json=request_data)
             assert response.status_code == 200
             result = response.json()
             assert "concept_id" in result
@@ -335,23 +343,11 @@ async def test_visual_concepts_comprehensive(client):
 async def test_galaxy_generation_comprehensive(client):
     """Test comprehensive galaxy generation"""
     request_data = {
-        "project_id": "proj123", 
-        "central_concept": "Sustainable Innovation",
-        "related_concepts": [
-            "Renewable Energy",
-            "Circular Economy", 
-            "Green Technology",
-            "Environmental Impact",
-            "Social Responsibility"
-        ],
-        "visualization_params": {
-            "size": "extra_large",
-            "style": "organic_network",
-            "layout": "force_directed",
-            "node_sizing": "by_relevance",
-            "edge_weighting": "semantic_similarity",
-            "color_scheme": "eco_gradient"
-        }
+        "keywords": ["inovação sustentável", "energia renovável", "economia circular", "tecnologia verde"],
+        "attributes": ["moderno", "ecológico", "responsável", "inovador", "futurista"],
+        "brief_id": "brief123",
+        "project_id": "proj123",
+        "demo_mode": True
     }
     
     with patch('main.supabase') as mock_supabase:
@@ -362,5 +358,6 @@ async def test_galaxy_generation_comprehensive(client):
         response = client.post("/generate-galaxy", json=request_data)
         assert response.status_code == 200
         result = response.json()
-        assert "galaxy_id" in result
-        assert result["galaxy_id"] == "galaxy789"
+        assert "galaxy_data" in result
+        assert "success" in result
+        assert result["success"] == True
