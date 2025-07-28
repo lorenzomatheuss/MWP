@@ -226,6 +226,12 @@ export default function HomePage() {
           purpose: data.analysis.purpose || '',
           values: data.analysis.brand_values || [],
           personality_traits: data.analysis.personality_traits || [],
+          creative_tensions: {
+            traditional_contemporary: 50,
+            corporate_creative: 50,
+            minimal_detailed: 50,
+            serious_playful: 50
+          },
           validated: false
         });
       } else {
@@ -234,6 +240,12 @@ export default function HomePage() {
           purpose: 'Criar uma marca inovadora e sustentável que conecta pessoas através da tecnologia.',
           values: ['Inovação', 'Sustentabilidade', 'Conexão Humana'],
           personality_traits: ['Moderna', 'Confiável', 'Inspiradora'],
+          creative_tensions: {
+            traditional_contemporary: 50,
+            corporate_creative: 50,
+            minimal_detailed: 50,
+            serious_playful: 50
+          },
           validated: false
         });
       }
@@ -252,6 +264,80 @@ export default function HomePage() {
       setIsAnalyzingStrategy(false);
     }
   }, [brief, currentBriefId]);
+
+  // Função para geração de conceitos visuais
+  const generateVisualConcepts = useCallback(async () => {
+    if (!currentBriefId || !strategicAnalysis.validated) return;
+    
+    setIsGeneratingVisuals(true);
+    setError(null);
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        throw new Error('URL da API não configurada');
+      }
+
+      console.log('Gerando conceitos visuais...', {
+        briefId: currentBriefId,
+        projectId: selectedProject,
+        strategicAnalysis
+      });
+
+      const response = await fetch(`${apiUrl}/generate-visual-concepts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          brief_id: currentBriefId,
+          project_id: selectedProject,
+          strategic_analysis: strategicAnalysis,
+          keywords,
+          attributes,
+          style_preferences: {
+            traditional_contemporary: strategicAnalysis.creative_tensions?.traditional_contemporary || 50,
+            corporate_creative: strategicAnalysis.creative_tensions?.corporate_creative || 50,
+            minimal_detailed: strategicAnalysis.creative_tensions?.minimal_detailed || 50,
+            serious_playful: strategicAnalysis.creative_tensions?.serious_playful || 50
+          }
+        }),
+      });
+
+      console.log('Resposta conceitos visuais:', response.status);
+
+      if (!response.ok) {
+        let errorMessage = 'Falha na geração dos conceitos visuais';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorData.message || errorMessage;
+        } catch (e) {
+          if (response.status === 404) {
+            errorMessage = 'Endpoint de conceitos visuais não encontrado';
+          } else if (response.status === 500) {
+            errorMessage = 'Erro interno do servidor na geração de conceitos';
+          }
+        }
+        throw new Error(errorMessage);
+      }
+
+      const visuals = await response.json();
+      console.log('Conceitos visuais gerados:', visuals);
+      
+      if (!visuals || !visuals.concepts) {
+        throw new Error('Resposta de conceitos visuais inválida');
+      }
+      
+      setGeneratedVisuals(visuals);
+      
+    } catch (err) {
+      console.error('Erro na geração de conceitos visuais:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Erro na geração de conceitos visuais';
+      setError(`${errorMessage}. Tente novamente.`);
+    } finally {
+      setIsGeneratingVisuals(false);
+    }
+  }, [currentBriefId, strategicAnalysis.validated, selectedProject, strategicAnalysis, keywords, attributes]);
 
   // Carregar projetos ao inicializar
   useEffect(() => {
@@ -423,113 +509,6 @@ export default function HomePage() {
     }
   };
 
-  // Função para validar análise estratégica
-  const validateStrategicAnalysis = () => {
-    console.log('Validando análise estratégica:', strategicAnalysis);
-    
-    setIsAnalyzingStrategy(true);
-    setError(null);
-    
-    try {
-      // Verificar se a URL da API está configurada
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      if (!apiUrl) {
-        throw new Error('URL da API não configurada. Verifique a variável NEXT_PUBLIC_API_URL.');
-      }
-
-      console.log('Iniciando análise estratégica...', {
-        apiUrl,
-        briefId: currentBriefId,
-        projectId: selectedProject,
-        textLength: brief.length,
-        keywords: keywords,
-        attributes: attributes
-      });
-
-      const response = await fetch(`${apiUrl}/strategic-analysis`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          brief_id: currentBriefId,
-          text: brief,
-          keywords: Array.isArray(keywords) ? keywords : [],
-          attributes: Array.isArray(attributes) ? attributes : [],
-          project_id: selectedProject
-        }),
-      });
-
-      console.log('Resposta recebida:', response.status, response.statusText);
-
-      if (!response.ok) {
-        let errorMessage = 'Falha na análise estratégica';
-        try {
-          const errorData = await response.json();
-          console.log('Dados de erro da API:', errorData);
-          
-          if (typeof errorData.detail === 'string') {
-            errorMessage = errorData.detail;
-          } else if (typeof errorData.message === 'string') {
-            errorMessage = errorData.message;
-          } else if (errorData.detail && typeof errorData.detail === 'object') {
-            errorMessage = 'Erro de validação nos dados enviados';
-          } else {
-            errorMessage = `Erro HTTP ${response.status}`;
-          }
-        } catch (parseError) {
-          console.log('Erro ao parsear resposta de erro:', parseError);
-          // Se não conseguir parsear o erro, usar mensagem genérica baseada no status
-          if (response.status === 404) {
-            errorMessage = 'Endpoint de análise estratégica não encontrado';
-          } else if (response.status === 500) {
-            errorMessage = 'Erro interno do servidor na análise estratégica';
-          } else if (response.status === 403) {
-            errorMessage = 'Acesso negado ao servidor de análise';
-          } else {
-            errorMessage = `Erro HTTP ${response.status}: ${response.statusText}`;
-          }
-        }
-        throw new Error(errorMessage);
-      }
-
-      const analysis = await response.json();
-      console.log('Análise estratégica concluída:', analysis);
-      
-      // Validar e configurar dados da análise estratégica
-      const strategicData = {
-        purpose: analysis.purpose || 'Propósito não identificado automaticamente',
-        values: Array.isArray(analysis.values) ? analysis.values : [],
-        personality_traits: Array.isArray(analysis.personality_traits) ? analysis.personality_traits : [],
-        creative_tensions: (analysis.creative_tensions && typeof analysis.creative_tensions === 'object') ? analysis.creative_tensions : {
-          traditional_contemporary: 50,
-          corporate_creative: 50,
-          minimal_detailed: 50,
-          serious_playful: 50
-        },
-        validated: false
-      };
-      
-      console.log('Dados estratégicos processados:', strategicData);
-      setStrategicAnalysis(strategicData);
-      
-    } catch (err) {
-      console.error('Erro na análise estratégica:', err);
-      let errorMessage = 'Erro desconhecido na análise estratégica';
-      
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (typeof err === 'string') {
-        errorMessage = err;
-      } else {
-        errorMessage = 'Erro na comunicação com o servidor';
-      }
-      
-      setError(`${errorMessage}. Tente novamente ou verifique sua conexão.`);
-    } finally {
-      setIsAnalyzingStrategy(false);
-    }
-  }, [brief, currentBriefId]);
 
   // Função para validar análise estratégica
   const validateStrategicAnalysis = () => {
@@ -552,79 +531,6 @@ export default function HomePage() {
     setCurrentStep(3);
   };
 
-  // Função para geração de conceitos visuais
-  const generateVisualConcepts = useCallback(async () => {
-    if (!currentBriefId || !strategicAnalysis.validated) return;
-    
-    setIsGeneratingVisuals(true);
-    setError(null);
-    
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      if (!apiUrl) {
-        throw new Error('URL da API não configurada');
-      }
-
-      console.log('Gerando conceitos visuais...', {
-        briefId: currentBriefId,
-        projectId: selectedProject,
-        strategicAnalysis
-      });
-
-      const response = await fetch(`${apiUrl}/generate-visual-concepts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          brief_id: currentBriefId,
-          project_id: selectedProject,
-          strategic_analysis: strategicAnalysis,
-          keywords,
-          attributes,
-          style_preferences: {
-            traditional_contemporary: strategicAnalysis.creative_tensions?.traditional_contemporary || 50,
-            corporate_creative: strategicAnalysis.creative_tensions?.corporate_creative || 50,
-            minimal_detailed: strategicAnalysis.creative_tensions?.minimal_detailed || 50,
-            serious_playful: strategicAnalysis.creative_tensions?.serious_playful || 50
-          }
-        }),
-      });
-
-      console.log('Resposta conceitos visuais:', response.status);
-
-      if (!response.ok) {
-        let errorMessage = 'Falha na geração dos conceitos visuais';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.detail || errorData.message || errorMessage;
-        } catch (e) {
-          if (response.status === 404) {
-            errorMessage = 'Endpoint de conceitos visuais não encontrado';
-          } else if (response.status === 500) {
-            errorMessage = 'Erro interno do servidor na geração de conceitos';
-          }
-        }
-        throw new Error(errorMessage);
-      }
-
-      const visuals = await response.json();
-      console.log('Conceitos visuais gerados:', visuals);
-      
-      if (!visuals || !visuals.concepts) {
-        throw new Error('Resposta de conceitos visuais inválida');
-      }
-      
-      setGeneratedVisuals(visuals);
-      
-    } catch (err) {
-      console.error('Erro na geração de conceitos visuais:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Erro na geração de conceitos visuais';
-      setError(`${errorMessage}. Tente novamente.`);
-    } finally {
-      setIsGeneratingVisuals(false);
-    }
-  }, [currentBriefId, strategicAnalysis.validated]);
 
   // Função para finalizar conceito selecionado
   const finalizeSelectedConcept = () => {
@@ -721,10 +627,10 @@ export default function HomePage() {
 
   const renderStepIndicator = () => {
     const steps = [
-      { number: 1, title: 'Quantum Upload', icon: Atom, completed: currentStep > 1, color: 'from-brand-gold to-brand-gold-light' },
-      { number: 2, title: 'Neural Analysis', icon: Cpu, completed: currentStep > 2, color: 'from-brand-neon-cyan to-brand-quantum-blue' },
-      { number: 3, title: 'AI Generation', icon: Sparkles, completed: currentStep > 3, color: 'from-brand-neon-purple to-brand-neon-pink' },
-      { number: 4, title: 'Holographic Export', icon: Orbit, completed: false, color: 'from-brand-neon-pink to-brand-gold' }
+      { number: 1, title: 'Upload', icon: Upload, completed: currentStep > 1, color: 'from-blue-500 to-blue-600' },
+      { number: 2, title: 'Análise', icon: Target, completed: currentStep > 2, color: 'from-green-500 to-green-600' },
+      { number: 3, title: 'Geração', icon: Sparkles, completed: currentStep > 3, color: 'from-purple-500 to-purple-600' },
+      { number: 4, title: 'Exportação', icon: Package, completed: false, color: 'from-orange-500 to-orange-600' }
     ];
 
     return (
@@ -757,7 +663,7 @@ export default function HomePage() {
                       {isCompleted ? (
                         <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                       ) : isActive ? (
-                        <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-black animate-pulse" />
+                        <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                       ) : (
                         <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-foreground/60" />
                       )}
@@ -814,14 +720,13 @@ export default function HomePage() {
   const renderStep1 = () => (
     <div className="space-y-8">
       {/* Gerenciamento de Projetos */}
-      <Card variant="glass" className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/10 via-transparent to-brand-neon-cyan/10" />
-        <CardHeader className="relative z-10">
+      <Card className="">
+        <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <Layers className="w-6 h-6 text-brand-gold" />
-            <HolographicText>Quantum Projects</HolographicText>
+            <Layers className="w-6 h-6 text-blue-600" />
+            Projetos
           </CardTitle>
-          <CardDescription>Initialize your brand creation matrix</CardDescription>
+          <CardDescription>Gerencie seus projetos de marca</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -853,20 +758,14 @@ export default function HomePage() {
       </Card>
 
       {/* Upload de Documentos */}
-      <Card variant="quantum" className="relative overflow-hidden morphing-card">
-        <div className="absolute inset-0 opacity-20">
-          <NeuralNetwork nodeCount={8} />
-        </div>
-        <CardHeader className="relative z-20">
+      <Card className="">
+        <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <div className="relative">
-              <Atom className="w-7 h-7 text-brand-neon-cyan animate-spin" style={{ animationDuration: '8s' }} />
-              <div className="absolute inset-0 w-7 h-7 border-2 border-brand-gold rounded-full animate-ping" />
-            </div>
-            <HolographicText>Neural Document Analysis</HolographicText>
+            <FileText className="w-6 h-6 text-green-600" />
+            Análise de Documentos
           </CardTitle>
           <CardDescription>
-            Upload strategic documents for quantum semantic processing
+            Faça upload de documentos estratégicos para análise automática
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -978,14 +877,13 @@ export default function HomePage() {
       </Card>
 
       {/* Entrada Manual como Fallback */}
-      <Card variant="neon" className="relative overflow-hidden">
-        <DataStream className="absolute inset-0" lineCount={3} />
-        <CardHeader className="relative z-10">
+      <Card className="">
+        <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <Lightning className="w-6 h-6 text-brand-neon-cyan" />
-            <HolographicText>Manual Input Protocol</HolographicText>
+            <Zap className="w-6 h-6 text-purple-600" />
+            Entrada Manual
           </CardTitle>
-          <CardDescription>Direct neural interface for brand data injection</CardDescription>
+          <CardDescription>Entrada direta de dados da marca</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -995,8 +893,7 @@ export default function HomePage() {
               onChange={(e) => setBrief(e.target.value)}
               rows={6}
             />
-            <QuantumButton
-              variant="quantum"
+            <Button
               size="lg"
               onClick={handleAnalyze} 
               disabled={isLoading || !brief.trim() || !selectedProject}
@@ -1005,15 +902,15 @@ export default function HomePage() {
               {isLoading ? (
                 <>
                   <Cpu className="w-5 h-5 mr-2 animate-spin" />
-                  ANALYZING QUANTUM DATA...
+                  Analisando...
                 </>
               ) : (
                 <>
                   <Sparkles className="w-5 h-5 mr-2" />
-                  INITIATE NEURAL ANALYSIS
+                  Iniciar Análise
                 </>
               )}
-            </QuantumButton>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -1024,21 +921,14 @@ export default function HomePage() {
   // Render da Tela 2 - Análise Estratégica
   const renderStep2 = () => (
     <div className="space-y-8">
-      <Card variant="quantum" className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-neon-cyan/10 via-transparent to-brand-quantum-blue/10" />
-        <div className="absolute inset-0 opacity-30">
-          <NeuralNetwork nodeCount={15} />
-        </div>
-        <CardHeader className="relative z-20">
+      <Card className="">
+        <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <div className="relative">
-              <Cpu className="w-7 h-7 text-brand-neon-cyan" />
-              <div className="absolute -inset-2 border border-brand-neon-cyan rounded-lg animate-neon-pulse" />
-            </div>
-            <HolographicText>Neural Strategic Analysis</HolographicText>
+            <Target className="w-6 h-6 text-green-600" />
+            Análise Estratégica
           </CardTitle>
           <CardDescription>
-            Quantum semantic processing for brand essence extraction
+            Processamento semântico para extração da essência da marca
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -1083,7 +973,7 @@ export default function HomePage() {
                 <div className="flex gap-2">
                   <Input
                     placeholder="Adicionar valor..."
-                    onKeyPress={(e) => {
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                       if (e.key === 'Enter') {
                         const value = (e.target as HTMLInputElement).value.trim();
                         if (value && !strategicAnalysis.values.includes(value)) {
@@ -1122,7 +1012,7 @@ export default function HomePage() {
                 <div className="flex gap-2">
                   <Input
                     placeholder="Adicionar traço de personalidade..."
-                    onKeyPress={(e) => {
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                       if (e.key === 'Enter') {
                         const trait = (e.target as HTMLInputElement).value.trim();
                         if (trait && !strategicAnalysis.personality_traits.includes(trait)) {
@@ -1143,19 +1033,14 @@ export default function HomePage() {
       </Card>
 
       {/* Espectros de Tensões Criativas */}
-      <Card variant="morphing" className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-neon-purple/10 via-transparent to-brand-neon-pink/10" />
-        <DataStream className="absolute inset-0 opacity-30" lineCount={4} />
-        <CardHeader className="relative z-10">
+      <Card className="">
+        <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <div className="relative">
-              <Orbit className="w-7 h-7 text-brand-neon-purple animate-spin" style={{ animationDuration: '12s' }} />
-              <Sliders className="w-4 h-4 text-brand-gold absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-            </div>
-            <HolographicText>Creative Tension Matrix</HolographicText>
+            <Sliders className="w-6 h-6 text-purple-600" />
+            Matriz de Tensões Criativas
           </CardTitle>
           <CardDescription>
-            Quantum mapping of strategic design vectors
+            Mapeamento estratégico de vetores de design
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -1197,59 +1082,55 @@ export default function HomePage() {
             />
           </div>
 
-          <div className="mt-8 p-6 bg-gradient-to-br from-brand-glass-white to-transparent backdrop-blur-quantum rounded-2xl border border-brand-glass-white relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/5 via-brand-neon-cyan/5 to-brand-neon-purple/5 animate-holographic-shimmer" />
-            <div className="relative z-10">
-              <h4 className="font-heading font-bold mb-4 text-center">
-                <HolographicText>Strategic Quantum Matrix</HolographicText>
+          <div className="mt-8 p-6 bg-gray-50 rounded-lg border">
+              <h4 className="font-bold mb-4 text-center">
+                Matriz Estratégica
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-sans">
-                <div className="p-3 rounded-xl bg-brand-glass-white backdrop-blur-sm">
-                  <span className="text-brand-gold font-bold">Visual:</span>{' '}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div className="p-3 rounded-lg bg-white border">
+                  <span className="text-blue-600 font-bold">Visual:</span>{' '}
                   <span className="text-foreground font-medium">
                     {strategicAnalysis.creative_tensions.traditional_contemporary > 50 ? 'Contemporary' : 'Traditional'}
                   </span>
                   <span className="text-muted-foreground ml-2">({strategicAnalysis.creative_tensions.traditional_contemporary}%)</span>
                 </div>
-                <div className="p-3 rounded-xl bg-brand-glass-white backdrop-blur-sm">
-                  <span className="text-brand-neon-cyan font-bold">Approach:</span>{' '}
+                <div className="p-3 rounded-lg bg-white border">
+                  <span className="text-green-600 font-bold">Approach:</span>{' '}
                   <span className="text-foreground font-medium">
                     {strategicAnalysis.creative_tensions.corporate_creative > 50 ? 'Creative' : 'Corporate'}
                   </span>
                   <span className="text-muted-foreground ml-2">({strategicAnalysis.creative_tensions.corporate_creative}%)</span>
                 </div>
-                <div className="p-3 rounded-xl bg-brand-glass-white backdrop-blur-sm">
-                  <span className="text-brand-neon-purple font-bold">Complexity:</span>{' '}
+                <div className="p-3 rounded-lg bg-white border">
+                  <span className="text-purple-600 font-bold">Complexity:</span>{' '}
                   <span className="text-foreground font-medium">
                     {strategicAnalysis.creative_tensions.minimal_detailed > 50 ? 'Detailed' : 'Minimal'}
                   </span>
                   <span className="text-muted-foreground ml-2">({strategicAnalysis.creative_tensions.minimal_detailed}%)</span>
                 </div>
-                <div className="p-3 rounded-xl bg-brand-glass-white backdrop-blur-sm">
-                  <span className="text-brand-neon-pink font-bold">Tone:</span>{' '}
+                <div className="p-3 rounded-lg bg-white border">
+                  <span className="text-orange-600 font-bold">Tone:</span>{' '}
                   <span className="text-foreground font-medium">
                     {strategicAnalysis.creative_tensions.serious_playful > 50 ? 'Playful' : 'Serious'}
                   </span>
                   <span className="text-muted-foreground ml-2">({strategicAnalysis.creative_tensions.serious_playful}%)</span>
                 </div>
               </div>
-            </div>
           </div>
 
           <div className="flex gap-2 mt-6">
             <Button variant="outline" onClick={() => setCurrentStep(1)}>
               Voltar
             </Button>
-            <QuantumButton
-              variant="quantum"
+            <Button
               size="lg"
               onClick={validateStrategicAnalysis}
               className="flex-1 font-bold"
               disabled={!strategicAnalysis.purpose || strategicAnalysis.values.length === 0}
             >
               <Sparkles className="w-5 h-5 mr-2" />
-              ACTIVATE VISUAL GENESIS
-            </QuantumButton>
+              Prosseguir para Geração Visual
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -1798,62 +1679,40 @@ export default function HomePage() {
   );
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      {/* Quantum Particles Background */}
-      <QuantumParticles className="opacity-30" particleCount={30} />
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       
       <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8 sm:space-y-12 relative z-10">
         {/* Hero Section */}
         <div className="text-center px-4 py-8 sm:py-12 relative">
-          <div className="relative inline-block">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-yellow-400 via-cyan-400 to-purple-500 bg-clip-text text-transparent">
-              5º ELEMENTO
-            </h1>
-            
-            {/* Orbiting elements */}
-            <div className="absolute -inset-8">
-              <div className="absolute top-0 left-0 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
-              <div className="absolute top-0 right-0 w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-              <div className="absolute bottom-0 left-0 w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-pink-400 rounded-full animate-pulse" />
-            </div>
-          </div>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 text-slate-800">
+            5º ELEMENTO
+          </h1>
           
-          <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            <span className="text-yellow-400 font-medium">4 elementos</span> criam a identidade. 
-            <span className="text-cyan-400 font-medium">O 5º</span> cria 
-            <span className="text-purple-400 font-bold">domínio de mercado</span>.
+          <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            <span className="text-blue-600 font-medium">4 elementos</span> criam a identidade. 
+            <span className="text-green-600 font-medium">O 5º</span> cria 
+            <span className="text-purple-600 font-bold">domínio de mercado</span>.
           </p>
           
-          {/* API Status with futuristic design */}
           <div className="flex items-center justify-center gap-3 mt-6">
-            <div className={`relative w-3 h-3 rounded-full ${
-              apiHealth === 'healthy' ? 'bg-green-400 shadow-neon-cyan animate-neon-pulse' : 
-              apiHealth === 'unhealthy' ? 'bg-red-400 shadow-[0_0_10px_#ff0000]' : 
-              'bg-yellow-400 animate-pulse'
-            }`}>
-              <div className={`absolute inset-0 rounded-full animate-ping ${
-                apiHealth === 'healthy' ? 'bg-green-400' : 
-                apiHealth === 'unhealthy' ? 'bg-red-400' : 
-                'bg-yellow-400'
-              }`} />
-            </div>
-            <span className="text-sm font-heading tracking-wide">
-              <span className="text-brand-gold">QUANTUM SYSTEM:</span>{' '}
+            <div className={`w-3 h-3 rounded-full ${
+              apiHealth === 'healthy' ? 'bg-green-500' : 
+              apiHealth === 'unhealthy' ? 'bg-red-500' : 
+              'bg-yellow-500'
+            }`} />
+            <span className="text-sm text-slate-600">
+              <span className="font-medium">Sistema:</span>{' '}
               <span className={`font-bold ${
-                apiHealth === 'healthy' ? 'text-green-400' : 
-                apiHealth === 'unhealthy' ? 'text-red-400' : 
-                'text-yellow-400'
+                apiHealth === 'healthy' ? 'text-green-600' : 
+                apiHealth === 'unhealthy' ? 'text-red-600' : 
+                'text-yellow-600'
               }`}>
-                {apiHealth === 'healthy' ? 'ONLINE' : 
-                 apiHealth === 'unhealthy' ? 'OFFLINE' : 
-                 'INITIALIZING...'}
+                {apiHealth === 'healthy' ? 'Online' : 
+                 apiHealth === 'unhealthy' ? 'Offline' : 
+                 'Iniciando...'}
               </span>
             </span>
           </div>
-          
-          {/* Floating data streams */}
-          <DataStream className="absolute inset-0 opacity-20" lineCount={5} />
         </div>
 
         {renderStepIndicator()}
