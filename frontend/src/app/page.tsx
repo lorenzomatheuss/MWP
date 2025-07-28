@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -177,25 +177,101 @@ export default function HomePage() {
     }
   };
 
+  const loadProjects = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProjects(data.projects);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar projetos:', err);
+    }
+  }, [userId]);
+
+  // Função para análise estratégica automática
+  const performStrategicAnalysis = useCallback(async () => {
+    if (!brief || !currentBriefId) return;
+    
+    setIsAnalyzingStrategy(true);
+    setError(null);
+    
+    try {
+      // Verificar se a URL da API está configurada
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        throw new Error('URL da API não configurada. Verifique a variável NEXT_PUBLIC_API_URL.');
+      }
+
+      const response = await fetch(`${apiUrl}/strategic-analysis`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          brief_id: currentBriefId,
+          brief_content: brief
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Erro HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.analysis) {
+        setStrategicAnalysis({
+          purpose: data.analysis.purpose || '',
+          values: data.analysis.brand_values || [],
+          personality_traits: data.analysis.personality_traits || [],
+          validated: false
+        });
+      } else {
+        // Análise mock se a API não retornar dados válidos
+        setStrategicAnalysis({
+          purpose: 'Criar uma marca inovadora e sustentável que conecta pessoas através da tecnologia.',
+          values: ['Inovação', 'Sustentabilidade', 'Conexão Humana'],
+          personality_traits: ['Moderna', 'Confiável', 'Inspiradora'],
+          validated: false
+        });
+      }
+    } catch (err) {
+      console.error('Erro na análise estratégica:', err);
+      
+      let errorMessage = 'Erro desconhecido';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else {
+        errorMessage = 'Erro na comunicação com o servidor';
+      }
+      
+      setError(`${errorMessage}. Tente novamente ou verifique sua conexão.`);
+    } finally {
+      setIsAnalyzingStrategy(false);
+    }
+  }, [brief, currentBriefId]);
+
   // Carregar projetos ao inicializar
   useEffect(() => {
     checkApiHealth();
     loadProjects();
-  }, []);
+  }, [loadProjects]);
 
   // Triggerar análise estratégica quando mudar para step 2
   useEffect(() => {
     if (currentStep === 2 && currentBriefId && !strategicAnalysis.purpose) {
       performStrategicAnalysis();
     }
-  }, [currentStep, currentBriefId]);
+  }, [currentStep, currentBriefId, performStrategicAnalysis, strategicAnalysis.purpose]);
 
   // Triggerar geração visual quando mudar para step 3
   useEffect(() => {
     if (currentStep === 3 && strategicAnalysis.validated && !generatedVisuals) {
       generateVisualConcepts();
     }
-  }, [currentStep, strategicAnalysis.validated]);
+  }, [currentStep, strategicAnalysis.validated, generateVisualConcepts, generatedVisuals]);
 
   // Triggerar geração do kit quando mudar para step 4
   useEffect(() => {
@@ -206,19 +282,7 @@ export default function HomePage() {
         setBrandName(projectName);
       }
     }
-  }, [currentStep, selectedConcept]);
-
-  const loadProjects = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${userId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setProjects(data.projects);
-      }
-    } catch (err) {
-      console.error('Erro ao carregar projetos:', err);
-    }
-  };
+  }, [currentStep, selectedConcept, brandKit, brandName, projects, selectedProject]);
 
   const createProject = async () => {
     if (!newProjectName.trim()) return;
@@ -359,9 +423,9 @@ export default function HomePage() {
     }
   };
 
-  // Função para análise estratégica automática
-  const performStrategicAnalysis = async () => {
-    if (!brief || !currentBriefId) return;
+  // Função para validar análise estratégica
+  const validateStrategicAnalysis = () => {
+    console.log('Validando análise estratégica:', strategicAnalysis);
     
     setIsAnalyzingStrategy(true);
     setError(null);
@@ -465,7 +529,7 @@ export default function HomePage() {
     } finally {
       setIsAnalyzingStrategy(false);
     }
-  };
+  }, [brief, currentBriefId]);
 
   // Função para validar análise estratégica
   const validateStrategicAnalysis = () => {
@@ -489,7 +553,7 @@ export default function HomePage() {
   };
 
   // Função para geração de conceitos visuais
-  const generateVisualConcepts = async () => {
+  const generateVisualConcepts = useCallback(async () => {
     if (!currentBriefId || !strategicAnalysis.validated) return;
     
     setIsGeneratingVisuals(true);
@@ -560,7 +624,7 @@ export default function HomePage() {
     } finally {
       setIsGeneratingVisuals(false);
     }
-  };
+  }, [currentBriefId, strategicAnalysis.validated]);
 
   // Função para finalizar conceito selecionado
   const finalizeSelectedConcept = () => {

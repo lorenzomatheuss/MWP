@@ -27,7 +27,8 @@
       "Bash(py -m pytest tests/ --maxfail=5 -x --tb=line)",
       "Bash(py -m pytest tests/test_api_endpoints.py tests/test_database.py tests/test_critical_paths.py -v --tb=line)",
       "Bash(sed:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(timeout 30 npm run build)"
     ],
     "deny": []
   }
