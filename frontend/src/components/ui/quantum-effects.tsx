@@ -16,12 +16,9 @@ export const QuantumParticles: React.FC<QuantumParticlesProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   
-  // SSR safety check
-  if (typeof window === 'undefined') {
-    return <div className={cn('fixed inset-0 pointer-events-none z-0', className)} />
-  }
-
   useEffect(() => {
+    // SSR safety check
+    if (typeof window === 'undefined') return
     const canvas = canvasRef.current
     if (!canvas || typeof window === 'undefined') return
 
@@ -110,6 +107,11 @@ export const QuantumParticles: React.FC<QuantumParticlesProps> = ({
     }
   }, [particleCount, colors])
 
+  // SSR safety check
+  if (typeof window === 'undefined') {
+    return <div className={cn('fixed inset-0 pointer-events-none z-0', className)} />
+  }
+
   return (
     <canvas
       ref={canvasRef}
@@ -130,12 +132,9 @@ export const NeuralNetwork: React.FC<NeuralNetworkProps> = ({
 }) => {
   const svgRef = useRef<SVGSVGElement>(null)
   
-  // SSR safety check
-  if (typeof window === 'undefined') {
-    return <div className={cn('absolute inset-0 w-full h-full opacity-20', className)} />
-  }
-
   useEffect(() => {
+    // SSR safety check
+    if (typeof window === 'undefined') return
     const svg = svgRef.current
     if (!svg) return
 
@@ -178,6 +177,11 @@ export const NeuralNetwork: React.FC<NeuralNetworkProps> = ({
 
     return () => clearInterval(interval)
   }, [nodeCount])
+
+  // SSR safety check
+  if (typeof window === 'undefined') {
+    return <div className={cn('absolute inset-0 w-full h-full opacity-20', className)} />
+  }
 
   return (
     <svg

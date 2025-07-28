@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,8 +39,8 @@ export default function CurationPage() {
   // Parâmetros da URL
   const projectId = searchParams?.get('projectId');
   const briefId = searchParams?.get('briefId');
-  const keywords = searchParams?.get('keywords')?.split(',') || [];
-  const attributes = searchParams?.get('attributes')?.split(',') || [];
+  const keywords = useMemo(() => searchParams?.get('keywords')?.split(',') || [], [searchParams]);
+  const attributes = useMemo(() => searchParams?.get('attributes')?.split(',') || [], [searchParams]);
 
   // Assets pré-carregados para demonstração rápida (hackathon mode)
   const [galaxyAssets] = useState([

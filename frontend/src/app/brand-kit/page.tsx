@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -79,7 +79,7 @@ export default function BrandKitPage() {
   }
 
   // Gerar kit de marca
-  const generateBrandKit = async () => {
+  const generateBrandKit = useCallback(async () => {
     setIsGenerating(true);
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/generate-brand-kit`, {
@@ -154,14 +154,14 @@ export default function BrandKitPage() {
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [briefId, projectId, brandName]);
 
   // Executar geração automaticamente
   useEffect(() => {
     if (projectId && briefId && brandName) {
       generateBrandKit();
     }
-  }, [projectId, briefId, brandName]);
+  }, [projectId, briefId, brandName, generateBrandKit]);
 
   const downloadBrandKit = async () => {
     if (!brandKit) return;
