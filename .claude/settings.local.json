@@ -26,7 +26,8 @@
       "Bash(py -m pytest tests/test_critical_paths.py::test_generate_visual_concepts_endpoint tests/test_critical_paths.py::test_galaxy_generation_comprehensive -v)",
       "Bash(py -m pytest tests/ --maxfail=5 -x --tb=line)",
       "Bash(py -m pytest tests/test_api_endpoints.py tests/test_database.py tests/test_critical_paths.py -v --tb=line)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }
