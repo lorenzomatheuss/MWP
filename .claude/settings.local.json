@@ -14,7 +14,18 @@
       "mcp__ide__getDiagnostics",
       "Bash(find:*)",
       "Bash(git reset:*)",
-      "Bash(source:*)"
+      "Bash(source:*)",
+      "Bash(pytest:*)",
+      "Bash(py -m pytest tests/ -v --tb=short)",
+      "Bash(py -m pip install:*)",
+      "Bash(py -m pytest tests/test_api_endpoints.py -v)",
+      "Bash(py -m pytest tests/test_database.py tests/test_critical_paths.py -v)",
+      "Bash(py -m pytest tests/test_critical_paths.py::test_parse_document_endpoint_success -v -s)",
+      "Bash(py -m pytest tests/test_critical_paths.py::test_parse_document_endpoint_success -v)",
+      "Bash(py -m pytest tests/test_critical_paths.py::test_generate_visual_concepts_endpoint tests/test_critical_paths.py::test_galaxy_generation_comprehensive tests/test_critical_paths.py::test_blend_concepts_endpoint -v)",
+      "Bash(py -m pytest tests/test_critical_paths.py::test_generate_visual_concepts_endpoint tests/test_critical_paths.py::test_galaxy_generation_comprehensive -v)",
+      "Bash(py -m pytest tests/ --maxfail=5 -x --tb=line)",
+      "Bash(py -m pytest tests/test_api_endpoints.py tests/test_database.py tests/test_critical_paths.py -v --tb=line)"
     ],
     "deny": []
   }
