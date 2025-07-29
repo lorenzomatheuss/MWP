@@ -237,7 +237,10 @@ export default function HomePage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Erro HTTP: ${response.status}`);
+        if (response.status === 422) {
+          throw new Error(errorData.detail || errorData.message || 'Erro de validação: verifique os dados enviados');
+        }
+        throw new Error(errorData.message || `Erro HTTP: ${response.status}. Tente novamente ou verifique sua conexão.`);
       }
 
       const data = await response.json();
@@ -334,7 +337,9 @@ export default function HomePage() {
           errorMessage = errorData.detail || errorData.message || errorMessage;
         } catch (e) {
           if (response.status === 404) {
-            errorMessage = 'Endpoint de conceitos visuais não encontrado';
+            errorMessage = 'Serviço de conceitos visuais não encontrado';
+          } else if (response.status === 422) {
+            errorMessage = 'Dados inválidos para geração de conceitos. Verifique a análise estratégica.';
           } else if (response.status === 500) {
             errorMessage = 'Erro interno do servidor na geração de conceitos';
           }
@@ -518,7 +523,11 @@ export default function HomePage() {
       });
       
       if (!response.ok) {
-        throw new Error('Falha ao processar documento');
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 422) {
+          throw new Error(errorData.detail || 'Formato de documento inválido ou dados insuficientes.');
+        }
+        throw new Error(errorData.message || 'Falha ao processar documento');
       }
       
       const result = await response.json();
@@ -563,7 +572,11 @@ export default function HomePage() {
       });
 
       if (!response.ok) {
-        throw new Error('Falha ao analisar o briefing.');
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 422) {
+          throw new Error(errorData.detail || 'Dados inválidos no briefing. Verifique o conteúdo e tente novamente.');
+        }
+        throw new Error(errorData.message || 'Falha ao analisar o briefing.');
       }
 
       const data: AnalysisResult = await response.json();
@@ -650,7 +663,11 @@ export default function HomePage() {
       });
 
       if (!response.ok) {
-        throw new Error('Falha na geração do kit de marca');
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 422) {
+          throw new Error(errorData.detail || 'Dados insuficientes para gerar o kit. Verifique todas as etapas anteriores.');
+        }
+        throw new Error(errorData.message || 'Falha na geração do kit de marca');
       }
 
       const kit = await response.json();
@@ -1254,10 +1271,10 @@ export default function HomePage() {
   // Render da Tela 2 - Análise Estratégica
   const renderStep2 = () => (
     <div className="space-y-8">
-      <Card className="">
+      <Card className="border-border/50 shadow-lg bg-card/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <Target className="w-6 h-6 text-green-600" />
+            <Target className="w-6 h-6 text-primary" />
             Análise Estratégica
           </CardTitle>
           <CardDescription>
@@ -1267,7 +1284,7 @@ export default function HomePage() {
         <CardContent>
           {isAnalyzingStrategy ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
               <p>Analisando estratégia da marca...</p>
             </div>
           ) : (
@@ -1288,7 +1305,7 @@ export default function HomePage() {
                 <label className="block text-sm font-medium mb-2">Valores Fundamentais</label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {strategicAnalysis.values.map((value, index) => (
-                    <span key={index} className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                    <span key={index} className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm flex items-center gap-2 border border-primary/20">
                       <Heart size={14} />
                       {value}
                       <button 
@@ -1296,7 +1313,7 @@ export default function HomePage() {
                           const newValues = strategicAnalysis.values.filter((_, i) => i !== index);
                           setStrategicAnalysis(prev => ({ ...prev, values: newValues }));
                         }}
-                        className="text-green-600 hover:text-green-800"
+                        className="text-primary hover:text-primary/80"
                       >
                         ×
                       </button>
@@ -1327,7 +1344,7 @@ export default function HomePage() {
                 <label className="block text-sm font-medium mb-2">Traços de Personalidade</label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {strategicAnalysis.personality_traits.map((trait, index) => (
-                    <span key={index} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                    <span key={index} className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm flex items-center gap-2 border border-secondary/20">
                       <Zap size={14} />
                       {trait}
                       <button 
@@ -1335,7 +1352,7 @@ export default function HomePage() {
                           const newTraits = strategicAnalysis.personality_traits.filter((_, i) => i !== index);
                           setStrategicAnalysis(prev => ({ ...prev, personality_traits: newTraits }));
                         }}
-                        className="text-purple-600 hover:text-purple-800"
+                        className="text-secondary-foreground hover:text-muted-foreground"
                       >
                         ×
                       </button>
@@ -1369,7 +1386,7 @@ export default function HomePage() {
       <Card className="">
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <Sliders className="w-6 h-6 text-purple-600" />
+            <Sliders className="w-6 h-6 text-primary" />
             Matriz de Tensões Criativas
           </CardTitle>
           <CardDescription>
@@ -1380,8 +1397,8 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
             <QuantumSlider
               label="Visual Spectrum"
-              leftLabel="Traditional"
-              rightLabel="Contemporary"
+              leftLabel="Tradicional"
+              rightLabel="Contemporâneo"
               value={strategicAnalysis.creative_tensions.traditional_contemporary}
               onChange={(value) => updateCreativeTension('traditional_contemporary', value)}
               color="gold"
@@ -1389,8 +1406,8 @@ export default function HomePage() {
             
             <QuantumSlider
               label="Approach Vector"
-              leftLabel="Corporate"
-              rightLabel="Creative"
+              leftLabel="Corporativo"
+              rightLabel="Criativo"
               value={strategicAnalysis.creative_tensions.corporate_creative}
               onChange={(value) => updateCreativeTension('corporate_creative', value)}
               color="cyan"
@@ -1398,8 +1415,8 @@ export default function HomePage() {
             
             <QuantumSlider
               label="Complexity Matrix"
-              leftLabel="Minimal"
-              rightLabel="Detailed"
+              leftLabel="Minimalista"
+              rightLabel="Detalhado"
               value={strategicAnalysis.creative_tensions.minimal_detailed}
               onChange={(value) => updateCreativeTension('minimal_detailed', value)}
               color="purple"
@@ -1407,8 +1424,8 @@ export default function HomePage() {
             
             <QuantumSlider
               label="Tone Frequency"
-              leftLabel="Serious"
-              rightLabel="Playful"
+              leftLabel="Sério"
+              rightLabel="Descontraído"
               value={strategicAnalysis.creative_tensions.serious_playful}
               onChange={(value) => updateCreativeTension('serious_playful', value)}
               color="pink"
@@ -1420,31 +1437,31 @@ export default function HomePage() {
                 Matriz Estratégica
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div className="p-3 rounded-lg bg-white border">
-                  <span className="text-blue-600 font-bold">Visual:</span>{' '}
+                <div className="p-3 rounded-lg bg-card border border-border/50">
+                  <span className="text-primary font-bold">Visual:</span>{' '}
                   <span className="text-foreground font-medium">
-                    {strategicAnalysis.creative_tensions.traditional_contemporary > 50 ? 'Contemporary' : 'Traditional'}
+                    {strategicAnalysis.creative_tensions.traditional_contemporary > 50 ? 'Contemporâneo' : 'Tradicional'}
                   </span>
                   <span className="text-muted-foreground ml-2">({strategicAnalysis.creative_tensions.traditional_contemporary}%)</span>
                 </div>
-                <div className="p-3 rounded-lg bg-white border">
-                  <span className="text-green-600 font-bold">Approach:</span>{' '}
+                <div className="p-3 rounded-lg bg-card border border-border/50">
+                  <span className="text-primary font-bold">Abordagem:</span>{' '}
                   <span className="text-foreground font-medium">
-                    {strategicAnalysis.creative_tensions.corporate_creative > 50 ? 'Creative' : 'Corporate'}
+                    {strategicAnalysis.creative_tensions.corporate_creative > 50 ? 'Criativo' : 'Corporativo'}
                   </span>
                   <span className="text-muted-foreground ml-2">({strategicAnalysis.creative_tensions.corporate_creative}%)</span>
                 </div>
-                <div className="p-3 rounded-lg bg-white border">
-                  <span className="text-purple-600 font-bold">Complexity:</span>{' '}
+                <div className="p-3 rounded-lg bg-card border border-border/50">
+                  <span className="text-primary font-bold">Complexidade:</span>{' '}
                   <span className="text-foreground font-medium">
-                    {strategicAnalysis.creative_tensions.minimal_detailed > 50 ? 'Detailed' : 'Minimal'}
+                    {strategicAnalysis.creative_tensions.minimal_detailed > 50 ? 'Detalhado' : 'Minimalista'}
                   </span>
                   <span className="text-muted-foreground ml-2">({strategicAnalysis.creative_tensions.minimal_detailed}%)</span>
                 </div>
-                <div className="p-3 rounded-lg bg-white border">
-                  <span className="text-orange-600 font-bold">Tone:</span>{' '}
+                <div className="p-3 rounded-lg bg-card border border-border/50">
+                  <span className="text-primary font-bold">Tom:</span>{' '}
                   <span className="text-foreground font-medium">
-                    {strategicAnalysis.creative_tensions.serious_playful > 50 ? 'Playful' : 'Serious'}
+                    {strategicAnalysis.creative_tensions.serious_playful > 50 ? 'Descontraído' : 'Sério'}
                   </span>
                   <span className="text-muted-foreground ml-2">({strategicAnalysis.creative_tensions.serious_playful}%)</span>
                 </div>
@@ -1493,9 +1510,9 @@ export default function HomePage() {
         <CardContent>
           {isGeneratingVisuals ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-6"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-6"></div>
               <h3 className="text-lg font-semibold mb-2">Gerando Conceitos Visuais</h3>
-              <p className="text-gray-600 mb-4">Isso pode levar alguns minutos...</p>
+              <p className="text-muted-foreground mb-4">Isso pode levar alguns minutos...</p>
               <div className="bg-gray-100 rounded-lg p-4 max-w-md mx-auto">
                 <div className="text-sm space-y-2">
                   <div className="flex justify-between">
@@ -1530,7 +1547,7 @@ export default function HomePage() {
                     key={concept.id} 
                     className={`cursor-pointer transition-all ${
                       selectedConcept === concept.id 
-                        ? 'ring-2 ring-purple-600 shadow-lg' 
+                        ? 'ring-2 ring-primary shadow-lg' 
                         : 'hover:shadow-md'
                     }`}
                     onClick={() => setSelectedConcept(concept.id)}
@@ -1589,9 +1606,9 @@ export default function HomePage() {
 
                       {/* Selection Indicator */}
                       {selectedConcept === concept.id && (
-                        <div className="flex items-center justify-center p-2 bg-purple-50 rounded-lg">
-                          <CheckCircle className="text-purple-600 mr-2" size={16} />
-                          <span className="text-purple-600 font-medium text-sm">Selecionado</span>
+                        <div className="flex items-center justify-center p-2 bg-primary/10 rounded-lg">
+                          <CheckCircle className="text-primary mr-2" size={16} />
+                          <span className="text-primary font-medium text-sm">Selecionado</span>
                         </div>
                       )}
                     </CardContent>
@@ -1876,9 +1893,9 @@ export default function HomePage() {
 
                 <Card className="cursor-pointer hover:shadow-md transition-shadow">
                   <CardContent className="p-6 text-center">
-                    <Package className="mx-auto text-purple-600 mb-3" size={32} />
+                    <Package className="mx-auto text-primary mb-3" size={32} />
                     <h3 className="font-semibold mb-2">Assets Package</h3>
-                    <p className="text-sm text-gray-600 mb-4">Logos, cores e fontes em PNG, SVG, PDF</p>
+                    <p className="text-sm text-muted-foreground mb-4">Logos, cores e fontes em PNG, SVG, PDF</p>
                     <Button 
                       size="sm" 
                       variant="outline"
