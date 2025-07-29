@@ -348,7 +348,7 @@ export default function CurationPage() {
                   <div className="flex items-center gap-2 mb-2">
                     {asset.type === 'color_palette' && <Palette className="h-4 w-4 text-purple-600" />}
                     {asset.type === 'typography' && <Type className="h-4 w-4 text-green-600" />}
-                    {asset.type === 'metaphor' && <Image className="h-4 w-4 text-blue-600" />}
+                    {asset.type === 'metaphor' && <Image className="h-4 w-4 text-blue-600" aria-label="Metáfora" />}
                     <span className="text-sm font-medium">
                       {asset.type === 'color_palette' && asset.data.name}
                       {asset.type === 'typography' && asset.data.name}
@@ -385,7 +385,7 @@ export default function CurationPage() {
                         />
                       ) : (
                         <div className="w-full h-16 bg-gray-200 rounded flex items-center justify-center mb-1">
-                          <Image className="h-6 w-6 text-gray-400" />
+                          <Image className="h-6 w-6 text-gray-400" aria-label="Imagem" />
                         </div>
                       )}
                       <div className="text-xs text-gray-600 line-clamp-2">
@@ -491,7 +491,7 @@ export default function CurationPage() {
                               />
                             ) : (
                               <div className="w-full h-20 bg-gray-200 rounded flex items-center justify-center">
-                                <Image className="h-8 w-8 text-gray-400" />
+                                <Image className="h-8 w-8 text-gray-400" aria-label="Imagem" />
                               </div>
                             )}
                             <div className="text-xs text-gray-600 mt-1">
@@ -510,7 +510,7 @@ export default function CurationPage() {
                               />
                             ) : (
                               <div className="w-full h-20 bg-gray-200 rounded flex items-center justify-center">
-                                <Image className="h-8 w-8 text-gray-400" />
+                                <Image className="h-8 w-8 text-gray-400" aria-label="Imagem" />
                               </div>
                             )}
                             <div className="text-xs text-gray-600 mt-1">
@@ -526,7 +526,7 @@ export default function CurationPage() {
                 {curatedAssets.length === 0 && (
                   <div className="flex items-center justify-center h-full text-gray-400">
                     <div className="text-center">
-                      <Image className="h-16 w-16 mx-auto mb-4" />
+                      <Image className="h-16 w-16 mx-auto mb-4" aria-label="Sem imagens" />
                       <p>Arraste elementos da galáxia para começar a curadoria</p>
                     </div>
                   </div>

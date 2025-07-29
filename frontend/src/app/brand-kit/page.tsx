@@ -347,7 +347,7 @@ export default function BrandKitPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Image className="h-5 w-5 text-blue-600" />
+                  <Image className="h-5 w-5 text-blue-600" aria-label="Logotipos" />
                   Logótipos
                 </CardTitle>
                 <CardDescription>
@@ -376,7 +376,7 @@ export default function BrandKitPage() {
                   </div>
                 ) : (
                   <div className="text-center text-gray-400 py-8">
-                    <Image className="h-12 w-12 mx-auto mb-2" />
+                    <Image className="h-12 w-12 mx-auto mb-2" aria-label="Sem logótipos" />
                     <p className="text-sm">Nenhum logótipo gerado</p>
                   </div>
                 )}

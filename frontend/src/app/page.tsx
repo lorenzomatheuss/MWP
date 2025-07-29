@@ -6,15 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { useRouter } from 'next/navigation';
-import { Upload, FileText, CheckCircle, AlertCircle, ArrowRight, Sliders, Target, Heart, Zap, Palette, Wand2, Download, Eye, Package, FileDown, Image, Monitor, Sparkles, Atom, Cpu, Layers, Zap as Lightning, Orbit, Trash2, RefreshCcw, Plus, Settings, HelpCircle, MoreHorizontal } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, Sliders, Target, Heart, Zap, Palette, Wand2, Download, Eye, Package, FileDown, Image, Monitor, Sparkles, Atom, Layers, Zap as Lightning, Orbit, Trash2, RefreshCcw, Plus, HelpCircle, MoreHorizontal } from 'lucide-react';
 import { QuantumSlider } from '@/components/ui/quantum-slider';
 import { DataStream, NeuralNetwork, QuantumParticles, HolographicText, QuantumButton } from '@/components/ui/quantum-effects';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -29,11 +27,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from "@/components/ui/tooltip";
+import NextImage from 'next/image';
 
 interface Project {
   id: string;
@@ -119,7 +115,6 @@ interface BrandKit {
 }
 
 export default function HomePage() {
-  const router = useRouter();
   
   // Estados para workflow de etapas
   const [currentStep, setCurrentStep] = useState(1);
@@ -363,7 +358,7 @@ export default function HomePage() {
     } finally {
       setIsGeneratingVisuals(false);
     }
-  }, [currentBriefId, strategicAnalysis.validated, selectedProject, strategicAnalysis, keywords, attributes]);
+  }, [currentBriefId, selectedProject, strategicAnalysis, keywords, attributes]);
 
   // Carregar projetos ao inicializar
   useEffect(() => {
@@ -717,7 +712,7 @@ export default function HomePage() {
       <div className="relative mb-8 sm:mb-12">
         <DataStream className="h-1" lineCount={3} />
         <div className="flex justify-center px-4">
-          <div className="flex items-center space-x-4 sm:space-x-8 overflow-x-auto pb-4 relative z-10">
+          <div className="flex items-center space-x-4 sm:space-x-8 overflow-x-auto pb-4 pt-2 px-2 relative z-10">
             {steps.map((step, index) => {
               const Icon = step.icon;
               const isActive = currentStep === step.number;
@@ -748,9 +743,9 @@ export default function HomePage() {
                         <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-foreground/60" />
                       )}
                       
-                      {/* Holographic glow effect */}
+                      {/* Holographic glow effect - positioned behind icon */}
                       {isActive && (
-                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent animate-holographic-shimmer" />
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent animate-holographic-shimmer pointer-events-none -z-10" />
                       )}
                     </div>
                     
@@ -1922,7 +1917,7 @@ export default function HomePage() {
                     {/* Logos */}
                     <div>
                       <h4 className="font-medium mb-3 flex items-center gap-2">
-                        <Image size={16} />
+                        <Image size={16} aria-label="Logos" />
                         Logos ({brandKit.assets_package.logos.length} variações)
                       </h4>
                       <div className="space-y-2">

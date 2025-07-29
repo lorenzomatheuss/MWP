@@ -45,7 +45,7 @@ export function ThemeProvider({
         setTheme(storedTheme)
       }
     }
-  }, [])
+  }, [storageKey, theme])
 
   React.useEffect(() => {
     const root = window.document.documentElement

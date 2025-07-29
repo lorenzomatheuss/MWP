@@ -52,7 +52,7 @@ const MetaphorNode = ({ data }: { data: any }) => {
     <Card className="w-80 shadow-lg border-blue-200 bg-blue-50">
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
-          <Image className="h-4 w-4 text-blue-600" />
+          <Image className="h-4 w-4 text-blue-600" aria-label="Imagem" />
           <CardTitle className="text-sm">Metáfora Visual</CardTitle>
         </div>
       </CardHeader>
@@ -168,42 +168,8 @@ export default function GalaxyPage() {
     [setEdges]
   );
 
-  // Gerar galáxia de conceitos
-  const generateGalaxy = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/generate-galaxy`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          keywords,
-          attributes,
-          project_id: projectId,
-          brief_id: briefId,
-          demo_mode: true, // Usar modo demo para hackathon
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao gerar galáxia de conceitos');
-      }
-
-      const data = await response.json();
-      setGalaxyAssets(data.galaxy_data);
-      createNodesFromAssets(data.galaxy_data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Criar nós no canvas a partir dos assets
-  const createNodesFromAssets = (assets: GalaxyAssets) => {
+  const createNodesFromAssets = useCallback((assets: GalaxyAssets) => {
     const newNodes: Node[] = [];
     const newEdges: Edge[] = [];
     
@@ -249,14 +215,49 @@ export default function GalaxyPage() {
 
     setNodes(newNodes);
     setEdges(newEdges);
-  };
+  }, [setNodes, setEdges]);
+
+  // Gerar galáxia de conceitos
+  const generateGalaxy = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/generate-galaxy`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          keywords,
+          attributes,
+          project_id: projectId,
+          brief_id: briefId,
+          demo_mode: true, // Usar modo demo para hackathon
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao gerar galáxia de conceitos');
+      }
+
+      const data = await response.json();
+      setGalaxyAssets(data.galaxy_data);
+      createNodesFromAssets(data.galaxy_data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [keywords, attributes, projectId, briefId, createNodesFromAssets]);
+
 
   // Gerar automaticamente se parâmetros estão presentes
   useEffect(() => {
     if (keywords.length > 0 || attributes.length > 0) {
       generateGalaxy();
     }
-  }, []);
+  }, [keywords.length, attributes.length, generateGalaxy]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -371,7 +372,7 @@ export default function GalaxyPage() {
         {!isLoading && !error && nodes.length === 0 && (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <Image className="h-24 w-24 text-gray-300 mx-auto mb-4" />
+              <Image className="h-24 w-24 text-gray-300 mx-auto mb-4" aria-label="Sem imagens" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Pronto para explorar conceitos
               </h3>

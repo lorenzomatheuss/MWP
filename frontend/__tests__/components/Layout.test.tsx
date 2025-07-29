@@ -78,8 +78,8 @@ describe('RootLayout', () => {
 describe('Layout metadata', () => {
   it('has correct metadata configuration', () => {
     expect(metadata).toBeDefined();
-    expect(metadata.title).toBe('5º Elemento');
-    expect(metadata.description).toBe('4 elementos criam a identidade. O 5º cria domínio de mercado.');
+    expect(metadata.title).toBe('5º Elemento - Plataforma Premium de Branding');
+    expect(metadata.description).toBe('4 elementos criam a identidade. O 5º cria domínio de mercado. Plataforma premium para agências e consultores de branding.');
   });
 
   it('has proper metadata structure', () => {
