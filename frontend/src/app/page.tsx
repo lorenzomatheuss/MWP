@@ -2055,8 +2055,8 @@ export default function HomePage() {
             
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8">
               <span className="text-primary font-medium">4 elementos</span> criam a identidade. 
-              <span className="text-primary font-medium">O 5º</span> cria 
-              <span className="text-foreground font-bold">domínio de mercado</span>.
+              <span className="text-primary font-medium"> O 5º</span> cria 
+              <span className="text-foreground font-bold"> domínio de mercado</span>.
             </p>
             
             <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
