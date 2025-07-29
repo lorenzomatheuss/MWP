@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import '@/styles/mobile-optimizations.css'
 import { ThemeProvider } from '@/components/theme-provider'
+import { ErrorNotification } from '@/components/ui/error-notification'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -23,6 +25,7 @@ export default function RootLayout({
           storageKey="quintoelemento-theme"
         >
           {children}
+          <ErrorNotification />
         </ThemeProvider>
       </body>
     </html>

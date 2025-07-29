@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
+import { usePerformanceAwareAnimations, useDeviceDetection } from '@/lib/responsive-utils'
 
 interface QuantumParticlesProps {
   className?: string
@@ -15,10 +16,16 @@ export const QuantumParticles: React.FC<QuantumParticlesProps> = ({
   colors = ['#FFD700', '#00FFFF', '#8A2BE2', '#FF69B4']
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const { animationsDisabled, getParticleCount } = usePerformanceAwareAnimations()
+  const { isMobile, prefersReducedMotion } = useDeviceDetection()
   
   useEffect(() => {
     // SSR safety check
     if (typeof window === 'undefined') return
+    
+    // Skip animation for performance/accessibility
+    if (animationsDisabled) return
+    
     const canvas = canvasRef.current
     if (!canvas || typeof window === 'undefined') return
 
@@ -44,14 +51,15 @@ export const QuantumParticles: React.FC<QuantumParticlesProps> = ({
       trail: Array<{ x: number; y: number; alpha: number }>
     }> = []
 
-    // Create particles
-    for (let i = 0; i < particleCount; i++) {
+    // Create particles with mobile optimization
+    const optimizedParticleCount = getParticleCount(particleCount);
+    for (let i = 0; i < optimizedParticleCount; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        size: Math.random() * 3 + 1,
+        vx: (Math.random() - 0.5) * (isMobile ? 0.3 : 0.5),
+        vy: (Math.random() - 0.5) * (isMobile ? 0.3 : 0.5),
+        size: Math.random() * (isMobile ? 2 : 3) + 1,
         color: colors[Math.floor(Math.random() * colors.length)],
         alpha: Math.random() * 0.5 + 0.1,
         trail: []
@@ -71,9 +79,10 @@ export const QuantumParticles: React.FC<QuantumParticlesProps> = ({
         if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1
         if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1
 
-        // Add to trail
+        // Add to trail (reduced on mobile)
         particle.trail.push({ x: particle.x, y: particle.y, alpha: particle.alpha })
-        if (particle.trail.length > 10) particle.trail.shift()
+        const maxTrailLength = isMobile ? 5 : 10;
+        if (particle.trail.length > maxTrailLength) particle.trail.shift()
 
         // Draw trail
         particle.trail.forEach((point, index) => {
@@ -90,11 +99,13 @@ export const QuantumParticles: React.FC<QuantumParticlesProps> = ({
         ctx.fillStyle = `${particle.color}${Math.floor(particle.alpha * 255).toString(16).padStart(2, '0')}`
         ctx.fill()
 
-        // Add glow effect
-        ctx.shadowBlur = 20
-        ctx.shadowColor = particle.color
-        ctx.fill()
-        ctx.shadowBlur = 0
+        // Add glow effect (reduced on mobile)
+        if (!isMobile) {
+          ctx.shadowBlur = 20
+          ctx.shadowColor = particle.color
+          ctx.fill()
+          ctx.shadowBlur = 0
+        }
       })
 
       requestAnimationFrame(animate)
@@ -105,10 +116,10 @@ export const QuantumParticles: React.FC<QuantumParticlesProps> = ({
     return () => {
       window.removeEventListener('resize', resizeCanvas)
     }
-  }, [particleCount, colors])
+  }, [particleCount, colors, animationsDisabled, isMobile, getParticleCount])
 
-  // SSR safety check
-  if (typeof window === 'undefined') {
+  // SSR safety check or animations disabled
+  if (typeof window === 'undefined' || animationsDisabled) {
     return <div className={cn('fixed inset-0 pointer-events-none z-0', className)} />
   }
 
@@ -116,7 +127,7 @@ export const QuantumParticles: React.FC<QuantumParticlesProps> = ({
     <canvas
       ref={canvasRef}
       className={cn('fixed inset-0 pointer-events-none z-0', className)}
-      style={{ mixBlendMode: 'screen' }}
+      style={{ mixBlendMode: isMobile ? 'normal' : 'screen' }}
     />
   )
 }
@@ -131,10 +142,12 @@ export const NeuralNetwork: React.FC<NeuralNetworkProps> = ({
   nodeCount = 20
 }) => {
   const svgRef = useRef<SVGSVGElement>(null)
+  const { animationsDisabled, getParticleCount } = usePerformanceAwareAnimations()
+  const { isMobile } = useDeviceDetection()
   
   useEffect(() => {
-    // SSR safety check
-    if (typeof window === 'undefined') return
+    // SSR safety check or animations disabled
+    if (typeof window === 'undefined' || animationsDisabled) return
     const svg = svgRef.current
     if (!svg) return
 
@@ -142,8 +155,9 @@ export const NeuralNetwork: React.FC<NeuralNetworkProps> = ({
     const width = 800
     const height = 600
 
-    // Create nodes
-    for (let i = 0; i < nodeCount; i++) {
+    // Create nodes (reduced on mobile)
+    const optimizedNodeCount = getParticleCount(nodeCount);
+    for (let i = 0; i < optimizedNodeCount; i++) {
       nodes.push({
         x: Math.random() * width,
         y: Math.random() * height,
@@ -151,9 +165,10 @@ export const NeuralNetwork: React.FC<NeuralNetworkProps> = ({
       })
     }
 
-    // Create connections
+    // Create connections (fewer on mobile)
     nodes.forEach((node, index) => {
-      const connectionCount = Math.floor(Math.random() * 3) + 1
+      const maxConnections = isMobile ? 2 : 3;
+      const connectionCount = Math.floor(Math.random() * maxConnections) + 1
       for (let i = 0; i < connectionCount; i++) {
         const targetIndex = Math.floor(Math.random() * nodes.length)
         if (targetIndex !== index && !node.connections.includes(targetIndex)) {
@@ -162,25 +177,26 @@ export const NeuralNetwork: React.FC<NeuralNetworkProps> = ({
       }
     })
 
-    // Animate connections
+    // Animate connections (slower on mobile)
     const animateConnections = () => {
       const lines = svg.querySelectorAll('.neural-line')
       lines.forEach((line, index) => {
         setTimeout(() => {
           line.classList.add('animate-data-stream')
-        }, index * 100)
+        }, index * (isMobile ? 200 : 100))
       })
     }
 
     animateConnections()
-    const interval = setInterval(animateConnections, 5000)
+    const animationInterval = isMobile ? 8000 : 5000;
+    const interval = setInterval(animateConnections, animationInterval)
 
     return () => clearInterval(interval)
-  }, [nodeCount])
+  }, [nodeCount, animationsDisabled, isMobile, getParticleCount])
 
-  // SSR safety check
-  if (typeof window === 'undefined') {
-    return <div className={cn('absolute inset-0 w-full h-full opacity-20', className)} />
+  // SSR safety check or animations disabled
+  if (typeof window === 'undefined' || animationsDisabled) {
+    return <div className={cn('absolute inset-0 w-full h-full opacity-10', className)} />
   }
 
   return (
@@ -292,6 +308,8 @@ export const QuantumButton: React.FC<QuantumButtonProps> = ({
   children,
   ...props
 }) => {
+  const { isTouchDevice } = useDeviceDetection()
+  const { animationsReduced } = usePerformanceAwareAnimations()
   const variants = {
     default: 'bg-primary text-primary-foreground hover:bg-primary/90',
     quantum: 'bg-quantum-gradient text-black font-bold shadow-quantum hover:shadow-neon-purple hover:scale-105 relative overflow-hidden',
@@ -299,23 +317,25 @@ export const QuantumButton: React.FC<QuantumButtonProps> = ({
     glass: 'bg-brand-glass-white backdrop-blur-quantum border border-brand-glass-white text-foreground hover:bg-opacity-20 hover:border-brand-neon-cyan shadow-glass'
   }
 
+  // Touch-friendly sizes
   const sizes = {
-    sm: 'px-4 py-2 text-sm',
-    md: 'px-6 py-3 text-base',
-    lg: 'px-8 py-4 text-lg'
+    sm: isTouchDevice ? 'px-5 py-3 text-sm min-h-[44px]' : 'px-4 py-2 text-sm',
+    md: isTouchDevice ? 'px-7 py-4 text-base min-h-[48px]' : 'px-6 py-3 text-base',
+    lg: isTouchDevice ? 'px-9 py-5 text-lg min-h-[56px]' : 'px-8 py-4 text-lg'
   }
 
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center rounded-xl font-heading font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 transform-gpu',
+        'inline-flex items-center justify-center rounded-xl font-heading font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        animationsReduced ? 'transition-colors duration-150' : 'transition-all duration-300 transform-gpu',
         variants[variant],
         sizes[size],
         className
       )}
       {...props}
     >
-      {variant === 'quantum' && (
+      {variant === 'quantum' && !animationsReduced && (
         <div className="absolute inset-0 bg-holographic opacity-0 hover:opacity-20 transition-opacity duration-300" />
       )}
       <span className="relative z-10">{children}</span>
