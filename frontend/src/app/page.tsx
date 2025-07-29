@@ -436,12 +436,25 @@ export default function HomePage() {
       });
 
       if (response.ok) {
+        // Update state immediately after successful deletion
+        setProjects(prevProjects => {
+          const newProjects = prevProjects.filter(p => p.id !== projectId);
+          console.log(`Deleted project ${projectId}. Projects count: ${prevProjects.length} -> ${newProjects.length}`);
+          return newProjects;
+        });
+        
         if (selectedProject === projectId) {
           setSelectedProject(null);
         }
+        
+        // Also refresh from server to ensure consistency
         await loadProjects();
+      } else {
+        console.error('Failed to delete project:', response.status, response.statusText);
+        setError(`Erro ao excluir projeto: ${response.status}`);
       }
     } catch (err) {
+      console.error('Error deleting project:', err);
       setError('Erro ao excluir projeto');
     } finally {
       setIsDeletingProject(null);
