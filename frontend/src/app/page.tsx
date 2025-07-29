@@ -986,7 +986,7 @@ export default function HomePage() {
         <CardContent className="space-y-6">
           <div 
             className={`
-              border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 group
+              border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 group overflow-visible
               ${dragActive ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-border/50 hover:border-primary/50 hover:bg-accent/30'}
             `}
             onDragEnter={handleDrag}
@@ -996,8 +996,8 @@ export default function HomePage() {
           >
             {selectedFile ? (
               <div className="space-y-6">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mx-auto">
-                  <FileText className="w-8 h-8 text-primary" />
+                <div className="flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mx-auto overflow-visible">
+                  <FileText className="w-10 h-10 text-primary" />
                 </div>
                 <div className="space-y-2">
                   <p className="font-semibold text-lg">{selectedFile.name}</p>
@@ -1036,9 +1036,9 @@ export default function HomePage() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-6">
-                <div className="flex items-center justify-center w-20 h-20 rounded-full bg-muted/20 mx-auto group-hover:bg-primary/10 transition-colors">
-                  <Upload className="w-10 h-10 text-muted-foreground group-hover:text-primary transition-colors" />
+              <div className="space-y-8 py-4">
+                <div className="flex items-center justify-center w-24 h-24 rounded-full bg-muted/20 mx-auto group-hover:bg-primary/10 transition-colors overflow-visible p-2">
+                  <Upload className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
                 <div className="space-y-2">
                   <p className="text-xl font-semibold">Arraste arquivos aqui</p>
